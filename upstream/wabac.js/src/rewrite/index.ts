@@ -1,0 +1,962 @@
+import { isAjaxRequest } from "../utils";
+
+import { decodeResponse } from "./decoder";
+
+import { rewriteDASH, rewriteHLS } from "./rewriteVideo";
+
+import {
+  DomainSpecificRuleSet,
+  hasRangeAsQuery,
+  HTML_ONLY_RULES,
+} from "./dsruleset";
+
+import { RxRewriter } from "./rxrewriter";
+import { JSRewriter } from "./jsrewriter";
+
+import { HTMLRewriter, ProxyHTMLRewriter } from "./html";
+import { type ArchiveRequest } from "../request";
+import { type ArchiveResponse } from "../response";
+import { type RWOpts } from "../types";
+
+// keep for backwards compatibility with RWP and AWP
+export { ArchiveResponse } from "../response";
+
+export { rewriteDASH, rewriteHLS } from "./rewriteVideo";
+
+// ===========================================================================
+const STYLE_REGEX = /(url\s*\(\s*[\\"']*)([^)'"]+)([\\"']*\s*\)?)/gi;
+
+const IMPORT_REGEX = /(@import\s*[\\"']*)([^)'";]+)([\\"']*\s*;?)/gi;
+
+const NO_WOMBAT_REGEX = /WB_wombat_/g;
+
+//const JSONP_REGEX = /^(?:[ \t]*(?:(?:\/\*[^\*]*\*\/)|(?:\/\/[^\n]+[\n])))*[ \t]*(\w+)\(\{/m;
+const JSONP_REGEX =
+  /^(?:\s*(?:(?:\/\*[^*]*\*\/)|(?:\/\/[^\n]+[\n])))*\s*([\w.]+)\([{[]/;
+
+const JSONP_CALLBACK_REGEX = /[?].*(?:callback|jsonp)=([^&]+)/i;
+
+// ===========================================================================
+// JS Rewriters
+export const jsRules = new DomainSpecificRuleSet(JSRewriter);
+export const baseRules = new DomainSpecificRuleSet(RxRewriter);
+
+// HTML Rx Rewriter (only used externally for now)
+export const htmlRules = new DomainSpecificRuleSet(RxRewriter, HTML_ONLY_RULES);
+
+// convert these mod types back to mp_
+export const TO_MP = ["if_", "fr_", "ln_", "oe_", "mt_"];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type HeadInsertFunc = (url: string, opts?: any) => string;
+type WorkerInsertFunc = (isModule: boolean) => string;
+
+type RewriterOpts = {
+  baseUrl: string;
+  prefix: string;
+  responseUrl?: string;
+  workerInsertFunc?: WorkerInsertFunc | null;
+  headInsertFunc?: HeadInsertFunc | null;
+  urlRewrite?: boolean;
+  contentRewrite?: boolean;
+  decode?: boolean;
+  useBaseRules?: boolean;
+};
+
+export function getCustomRewriter(url: string, isHTML: boolean) {
+  const rules = isHTML ? htmlRules : baseRules;
+  // [TODO]
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return rules.getCustomRewriter(url);
+}
+
+// ===========================================================================
+export class Rewriter {
+  urlRewrite: boolean;
+  contentRewrite: boolean;
+
+  baseUrl: string;
+
+  dsRules: DomainSpecificRuleSet;
+
+  decode: boolean;
+
+  prefix = "";
+  originPrefix = "";
+  relPrefix = "";
+  schemeRelPrefix = "";
+  scheme: string;
+  url: string;
+  responseUrl: string;
+  isCharsetUTF8: boolean;
+  isCharsetDetected = false;
+
+  headInsertFunc: HeadInsertFunc | null;
+  workerInsertFunc: WorkerInsertFunc | null;
+
+  _jsonpCallback: string | boolean | null;
+
+  constructor({
+    baseUrl,
+    prefix,
+    responseUrl = undefined,
+    workerInsertFunc = null,
+    headInsertFunc = null,
+    urlRewrite = true,
+    contentRewrite = true,
+    decode = true,
+    useBaseRules = false,
+  }: RewriterOpts) {
+    this.urlRewrite = urlRewrite;
+    this.contentRewrite = contentRewrite;
+    this.dsRules = urlRewrite && !useBaseRules ? jsRules : baseRules;
+    this.decode = decode;
+
+    this.prefix = prefix || "";
+    if (this.prefix && urlRewrite) {
+      const parsed = new URL(this.prefix);
+      this.originPrefix = parsed.origin;
+      this.relPrefix = parsed.pathname;
+      this.schemeRelPrefix = this.prefix.slice(parsed.protocol.length);
+    }
+
+    // response url always has a scheme, should be specified if baseUrl may not..
+    const parsed = new URL(responseUrl || baseUrl);
+    this.scheme = parsed.protocol;
+
+    if (baseUrl.startsWith("//")) {
+      baseUrl = this.scheme + baseUrl;
+    }
+
+    this.url = this.baseUrl = baseUrl;
+
+    this.headInsertFunc = headInsertFunc;
+    this.workerInsertFunc = workerInsertFunc;
+    this.responseUrl = responseUrl || baseUrl;
+    this.isCharsetUTF8 = false;
+
+    this._jsonpCallback = null;
+  }
+
+  getRewriteMode(
+    request: ArchiveRequest,
+    response: ArchiveResponse,
+    url = "",
+    mime = "",
+  ) {
+    // [TODO]
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!mime && response) {
+      mime = response.headers.get("Content-Type") || "";
+      const parts = mime.split(";");
+      // @ts-expect-error [TODO] - TS2322 - Type 'string | undefined' is not assignable to type 'string'.
+      mime = parts[0];
+      if (parts.length > 1) {
+        this.isCharsetUTF8 =
+          // @ts-expect-error [TODO] - TS2532 - Object is possibly 'undefined'.
+          parts[1]
+            .trim()
+            .toLowerCase()
+            .replace("charset=", "")
+            .replace("-", "") === "utf8";
+        this.isCharsetDetected = true;
+      }
+    }
+    mime = mime.toLowerCase();
+    if (request.mod === "esm_") {
+      this.isCharsetUTF8 = true;
+    }
+
+    // [TODO]
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (request) {
+      switch (request.destination) {
+        case "style":
+          return "css";
+
+        case "script":
+          return this.getScriptRewriteMode(mime, url, request.mod, "js");
+
+        case "worker":
+          return "js-worker";
+      }
+    }
+
+    switch (mime) {
+      case "text/html":
+        if (
+          !request.destination &&
+          request.headers.get("Accept") === "application/json"
+        ) {
+          return "json";
+        }
+        return "html";
+
+      case "text/css":
+        return "css";
+
+      case "application/x-mpegurl":
+      case "application/vnd.apple.mpegurl":
+        return "hls";
+
+      case "application/dash+xml":
+        return "dash";
+
+      case "":
+        if (this.isGuessHtml(request, response)) {
+          return "html";
+        }
+      // fallthrough
+
+      default:
+        return this.getScriptRewriteMode(mime, url, request.mod, "");
+    }
+  }
+
+  isGuessHtml(request: ArchiveRequest, response: ArchiveResponse) {
+    if (
+      request.destination &&
+      request.destination !== "document" &&
+      request.destination !== "iframe"
+    ) {
+      return false;
+    }
+
+    if (response.buffer) {
+      try {
+        const start = new TextDecoder().decode(response.buffer.slice(0, 1024));
+        if (/<\s*html/i.exec(start)) {
+          return true;
+        }
+      } catch (_) {
+        return false;
+      }
+    }
+
+    return false;
+  }
+
+  getScriptRewriteMode(mime: string, url: string, mod = "", defaultType = "") {
+    switch (mime) {
+      case "text/javascript":
+      case "application/javascript":
+      case "application/x-javascript":
+        if (this.parseJSONPCallback(url)) {
+          return "jsonp";
+        }
+        if (url.endsWith(".json")) {
+          return "json";
+        }
+        if (mod === "wkr_" || mod === "wkrm_") {
+          return "js-worker";
+        }
+        return "js";
+
+      case "application/json":
+        return "json";
+
+      default:
+        return defaultType;
+    }
+  }
+
+  async rewrite(
+    response: ArchiveResponse,
+    request: ArchiveRequest,
+  ): Promise<ArchiveResponse> {
+    const rewriteMode = this.contentRewrite
+      ? this.getRewriteMode(request, response, this.baseUrl)
+      : null;
+
+    const isAjax = isAjaxRequest(request);
+
+    const urlRewrite = this.urlRewrite && !isAjax;
+
+    const headers = this.rewriteHeaders(
+      response.headers,
+      this.urlRewrite,
+      !!rewriteMode,
+      isAjax,
+    );
+
+    if (response.extraOpts?.detectedCT) {
+      headers.set("Content-Type", response.extraOpts.detectedCT);
+    }
+
+    const encoding = response.headers.get("content-encoding");
+    const te = response.headers.get("transfer-encoding");
+
+    response.headers = headers;
+
+    // attempt to decode only if set
+    // eg. data may already be decoded for many stores
+    if (this.decode && (encoding || te)) {
+      response = await decodeResponse(
+        response,
+        encoding,
+        te,
+        rewriteMode === null,
+      );
+    }
+
+    const opts: RWOpts = {
+      response,
+      prefix: this.prefix,
+      baseUrl: this.baseUrl,
+    };
+
+    let rwFunc: ((x: string, opts: RWOpts) => string) | null = null;
+
+    switch (rewriteMode) {
+      case "html":
+        if (urlRewrite) {
+          return await this.rewriteHtml(response);
+        }
+        break;
+
+      case "css":
+        if (this.urlRewrite) {
+          rwFunc = this.rewriteCSS;
+        }
+        break;
+
+      case "js":
+        rwFunc = this.rewriteJS;
+        if (request.mod === "esm_") {
+          opts.isModule = true;
+        }
+        break;
+
+      case "json":
+        rwFunc = this.rewriteJSON;
+        break;
+
+      case "js-worker":
+        if (request.mod === "wkrm_" || request.mod === "esm_") {
+          opts.isModule = true;
+        }
+        rwFunc = this.rewriteJSWorker;
+        break;
+
+      case "jsonp":
+        rwFunc = this.rewriteJSONP;
+        break;
+
+      case "hls":
+        rwFunc = rewriteHLS;
+        break;
+
+      case "dash":
+        rwFunc = rewriteDASH;
+        break;
+    }
+
+    if (urlRewrite) {
+      opts.rewriteUrl = (url: string) => this.rewriteUrl(url);
+    }
+
+    if (rwFunc) {
+      // [TODO]
+      // eslint-disable-next-line prefer-const
+      let { bomFound, text } = await response.getText(this.isCharsetUTF8);
+      text = rwFunc.call(this, text, opts);
+      // if BOM found and not already UTF-8, add charset explicitly
+      if (bomFound && !this.isCharsetUTF8) {
+        let mime = headers.get("Content-Type") || "";
+        const parts = mime.split(";");
+        // @ts-expect-error [TODO] - TS2322 - Type 'string | undefined' is not assignable to type 'string'.
+        mime = parts[0];
+        if (mime) {
+          headers.set("Content-Type", mime + "; charset=utf-8");
+        }
+        this.isCharsetUTF8 = true;
+      }
+      response.setText(text, this.isCharsetUTF8);
+    } else {
+      // check range-as-query
+      const result = hasRangeAsQuery(request.url);
+      if (result) {
+        const url = new URL(request.url);
+        const start = parseInt(url.searchParams.get(result.start) || "");
+        const end = parseInt(url.searchParams.get(result.end) || "");
+        if (!isNaN(start) && !isNaN(end)) {
+          const existingLen = Number(response.headers.get("Content-Length"));
+          const newLen = end - start + 1;
+          if (
+            existingLen !== newLen &&
+            (isNaN(existingLen) || existingLen > newLen) &&
+            response.setRawRange(start, end)
+          ) {
+            response.headers.set("Content-Length", String(newLen));
+          }
+        }
+      }
+    }
+
+    return response;
+  }
+
+  updateBaseUrl(url: string) {
+    // if already rewritten, unrewrite first
+    if (this.originPrefix && url.startsWith(this.originPrefix)) {
+      const inx = url.indexOf("/http");
+      if (inx >= 0) {
+        url = url.slice(inx + 1);
+      }
+    }
+
+    // set internal base to full url
+    this.baseUrl = new URL(url, this.baseUrl).href;
+
+    // not an absolute url, ensure it has slash
+    if (url && this.baseUrl != url) {
+      try {
+        url = new URL(url).href;
+        // [TODO]
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (e) {
+        if (url.startsWith("//")) {
+          url = new URL("https:" + url).href;
+          url = url.slice("https:".length);
+        }
+      }
+    }
+
+    // return rewritten base url, but keeping scheme-relativeness
+    return this.rewriteUrl(url);
+  }
+
+  isRewritableUrl(url: string) {
+    const NO_REWRITE_URI_PREFIX = [
+      "#",
+      "javascript:",
+      "data:",
+      "mailto:",
+      "about:",
+      "file:",
+      "blob:",
+      "{",
+    ];
+
+    for (const prefix of NO_REWRITE_URI_PREFIX) {
+      if (url.startsWith(prefix)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  rewriteUrl(url: string, forceAbs = false) {
+    if (!this.urlRewrite) {
+      return url;
+    }
+
+    const origUrl = url;
+
+    url = url.trim();
+    if (url.startsWith("\\")) {
+      url = url.replace(/\\(?![//])/g, "/");
+    }
+
+    if (
+      !url ||
+      !this.isRewritableUrl(url) ||
+      url.startsWith(this.prefix) ||
+      url.startsWith(this.relPrefix)
+    ) {
+      return origUrl;
+    }
+
+    if (
+      url.startsWith("http:") ||
+      url.startsWith("https:") ||
+      url.startsWith("https\\3a/")
+    ) {
+      return this.prefix + url;
+    }
+
+    if (url.startsWith("//") || url.startsWith("\\/\\/")) {
+      return this.schemeRelPrefix + url;
+    }
+
+    if (url.startsWith("/")) {
+      url = new URL(url, this.baseUrl).href;
+      return this.relPrefix + url;
+    } else if (forceAbs || url.indexOf("../") >= 0) {
+      url = new URL(url, this.baseUrl).href;
+      return this.prefix + url;
+    } else {
+      return origUrl;
+    }
+  }
+
+  // HTML
+  async rewriteHtml(response: ArchiveResponse): Promise<ArchiveResponse> {
+    const htmlRW = new HTMLRewriter(this);
+    return htmlRW.rewrite(response);
+  }
+
+  // CSS
+  rewriteCSS(text: string) {
+    // [TODO]
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const rewriter = this;
+
+    // [TODO]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function cssStyleReplacer(match: any, n1: string, n2: string, n3: string) {
+      n2 = n2.trim();
+      return n1 + rewriter.rewriteUrl(n2) + n3;
+    }
+
+    return text
+      .replace(STYLE_REGEX, cssStyleReplacer)
+      .replace(IMPORT_REGEX, cssStyleReplacer)
+      .replace(NO_WOMBAT_REGEX, "");
+  }
+
+  // JS
+  rewriteJS(text: string, opts?: RWOpts): string {
+    const noUrlProxyRewrite =
+      opts && !opts.rewriteUrl && opts.isModule === undefined && !opts.inline;
+    const dsRules = noUrlProxyRewrite ? baseRules : this.dsRules;
+    const dsRewriter = dsRules.getRewriter(this.baseUrl);
+
+    // optimize: if default rewriter and not rewriting urls, skip
+    if (dsRewriter === dsRules.defaultRewriter && noUrlProxyRewrite) {
+      return text;
+    }
+
+    // [TODO]
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return dsRewriter.rewrite(text, opts);
+  }
+
+  rewriteJSWorker(text: string, opts: RWOpts): string {
+    opts.isWorker = true;
+    const moduleInsert = this.workerInsertFunc!(opts.isModule ?? false);
+    if (opts.isModule) {
+      opts.moduleInsert = moduleInsert;
+      return this.rewriteJS(text, opts);
+    } else {
+      return moduleInsert + this.rewriteJS(text, opts);
+    }
+  }
+
+  // JSON
+  rewriteJSON(text: string, opts: RWOpts): string {
+    text = this.rewriteJSONP(text);
+
+    const dsRewriter = baseRules.getRewriter(this.baseUrl);
+
+    if (dsRewriter !== baseRules.defaultRewriter) {
+      // [TODO]
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return dsRewriter.rewrite(text, opts);
+    }
+
+    return text;
+  }
+
+  // Importmap
+  rewriteImportmap(text: string) {
+    type ImportMap = {
+      imports?: Record<string, string>;
+      scopes?: Record<string, Record<string, string>>;
+    };
+
+    const rewriteESM = (url: string) => {
+      return this.rewriteUrl(url).replace("mp_/", "esm_/");
+    };
+
+    try {
+      const root = JSON.parse(text) as ImportMap;
+
+      const imports: Record<string, string> = {};
+      const output: ImportMap = { imports };
+
+      for (const [key, value] of Object.entries(root.imports || {})) {
+        imports[rewriteESM(key)] = rewriteESM(value);
+      }
+
+      if (root.scopes) {
+        const scopes: Record<string, Record<string, string>> = {};
+        for (const [scopeKey, scopeValue] of Object.entries(root.scopes)) {
+          const newScope: Record<string, string> = {};
+          for (const [key, value] of Object.entries(scopeValue)) {
+            newScope[rewriteESM(key)] = rewriteESM(value);
+          }
+          scopes[rewriteESM(scopeKey)] = newScope;
+        }
+        output.scopes = scopes;
+      }
+
+      return JSON.stringify(output, null, 2);
+    } catch (e) {
+      console.warn("Error parsing importmap", e);
+      return text;
+    }
+  }
+
+  parseJSONPCallback(url: string) {
+    const callback = url.match(JSONP_CALLBACK_REGEX);
+    if (!callback || callback[1] === "?") {
+      this._jsonpCallback = false;
+      return false;
+    }
+
+    // @ts-expect-error [TODO] - TS2322 - Type 'string | undefined' is not assignable to type 'string | boolean | null'.
+    this._jsonpCallback = callback[1];
+    return true;
+  }
+
+  // JSONP
+  rewriteJSONP(text: string) {
+    const jsonM = text.match(JSONP_REGEX);
+    if (!jsonM) {
+      return text;
+    }
+
+    // if null, hasn't been parsed yet
+    if (this._jsonpCallback === null) {
+      this.parseJSONPCallback(this.baseUrl);
+    }
+
+    if (this._jsonpCallback === false) {
+      return text;
+    }
+
+    return (
+      // @ts-expect-error [TODO] - TS2345 - Argument of type 'string | undefined' is not assignable to parameter of type 'string'. | TS2532 - Object is possibly 'undefined'.
+      this._jsonpCallback + text.slice(text.indexOf(jsonM[1]) + jsonM[1].length)
+    );
+  }
+
+  //Headers
+  rewriteHeaders(
+    headers: Headers,
+    urlRewrite: boolean,
+    contentRewrite: boolean,
+    isAjax: boolean,
+  ) {
+    const headerRules: Record<string, string> = {
+      "access-control-allow-origin": "prefix-if-url-rewrite",
+      "access-control-allow-credentials": "prefix-if-url-rewrite",
+      "access-control-expose-headers": "prefix-if-url-rewrite",
+      "access-control-max-age": "prefix-if-url-rewrite",
+      "access-control-allow-methods": "prefix-if-url-rewrite",
+      "access-control-allow-headers": "prefix-if-url-rewrite",
+
+      "accept-patch": "keep",
+      "accept-ranges": "keep",
+
+      age: "prefix",
+
+      allow: "keep",
+
+      "alt-svc": "prefix",
+      "cache-control": "prefix",
+
+      connection: "prefix",
+
+      "content-base": "url-rewrite",
+      "content-disposition": "keep",
+      "content-encoding": "prefix-if-content-rewrite",
+      "content-language": "keep",
+      "content-length": "content-length",
+      "content-location": "url-rewrite",
+      "content-md5": "prefix",
+      "content-range": "keep",
+      "content-security-policy": "prefix",
+      "content-security-policy-report-only": "prefix",
+      "content-type": "keep",
+
+      date: "keep",
+
+      etag: "prefix",
+      expires: "prefix",
+
+      "last-modified": "prefix",
+      link: "link",
+      location: "url-rewrite",
+
+      p3p: "prefix",
+      pragma: "prefix",
+
+      "proxy-authenticate": "keep",
+
+      "public-key-pins": "prefix",
+      "referrer-policy": "prefix",
+      "retry-after": "prefix",
+      server: "prefix",
+
+      "set-cookie": "cookie",
+
+      status: "prefix",
+
+      "strict-transport-security": "prefix",
+
+      trailer: "prefix",
+      "transfer-encoding": "transfer-encoding",
+      tk: "prefix",
+
+      upgrade: "prefix",
+      "upgrade-insecure-requests": "prefix",
+
+      vary: "prefix",
+
+      via: "prefix",
+
+      warning: "prefix",
+
+      "www-authenticate": "keep",
+
+      "x-frame-options": "prefix",
+      "x-xss-protection": "prefix",
+
+      // this header may cause a crash in some version of Chrome if not rewritten
+      "origin-agent-cluster": "prefix",
+    };
+
+    const headerPrefix = "X-Archive-Orig-";
+
+    const new_headers = new Headers();
+
+    // [TODO]
+    // eslint-disable-next-line prefer-const
+    for (let [key, value] of headers.entries()) {
+      const rule = headerRules[key];
+      switch (rule) {
+        case "keep":
+          new_headers.append(key, value);
+          break;
+
+        case "url-rewrite":
+          if (urlRewrite) {
+            // if location and redirect just to change scheme of the responseUrl
+            if (key === "location" && this.url !== this.responseUrl) {
+              const otherScheme = this.scheme === "http:" ? "https:" : "http:";
+              const responseUrlOtherScheme =
+                otherScheme + this.responseUrl.slice(this.scheme.length);
+              if (value === responseUrlOtherScheme) {
+                value = otherScheme + this.url.slice(this.url.indexOf("//"));
+              }
+            }
+
+            new_headers.append(key, this.rewriteUrl(value));
+          } else {
+            new_headers.append(key, value);
+          }
+          break;
+
+        case "prefix-if-content-rewrite":
+          if (contentRewrite) {
+            new_headers.append(headerPrefix + key, value);
+          } else {
+            new_headers.append(key, value);
+          }
+          break;
+
+        case "prefix-if-url-rewrite":
+          if (urlRewrite) {
+            new_headers.append(headerPrefix + key, value);
+          } else {
+            new_headers.append(key, value);
+          }
+          break;
+
+        case "content-length":
+          if (value == "0") {
+            new_headers.append(key, value);
+            continue;
+          }
+
+          if (contentRewrite) {
+            try {
+              if (parseInt(value) >= 0) {
+                new_headers.append(key, value);
+                continue;
+              }
+              // [TODO]
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            } catch (e) {
+              // ignore if content-length is not parsable as number
+            }
+          }
+
+          new_headers.append(key, value);
+          break;
+
+        case "transfer-encoding":
+          //todo: mark as needing decoding?
+          new_headers.append(headerPrefix + key, value);
+          break;
+
+        case "prefix":
+          new_headers.append(headerPrefix + key, value);
+          break;
+
+        case "cookie":
+          //todo
+          new_headers.append(key, value);
+          break;
+
+        case "link":
+          if (urlRewrite) {
+            new_headers.append(key, this.rewriteLinkHeader(value, isAjax));
+          } else {
+            new_headers.append(key, value);
+          }
+          break;
+
+        default:
+          new_headers.append(key, value);
+      }
+    }
+
+    return new_headers;
+  }
+
+  rewriteLinkHeader(value: string, preloadOnly = false) {
+    try {
+      value = value.replace(
+        preloadOnly
+          ? /<(.*?)>(?=[^,]+rel=["']?(?:preload|modulepreload|stylesheet))/g
+          : /<(.*?)>/g,
+        (_, uri: string) => {
+          return "<" + this.rewriteUrl(uri) + ">";
+        },
+      );
+    } catch (_e) {
+      console.warn("Error parsing link header: " + value);
+    }
+    return value;
+  }
+}
+
+// ===========================================================================
+export class ProxyRewriter extends Rewriter {
+  proxyOrigin: string;
+  proxyHost: string;
+  altProxyOrigins?: string[];
+
+  localOrigin: string;
+
+  proxyTLD: string;
+  localTLD: string;
+
+  localScheme: string;
+
+  httpToHttps: boolean;
+
+  rewriteRelCanonical: boolean;
+
+  constructor(
+    opts: RewriterOpts,
+    request: ArchiveRequest,
+    { rewriteRelCanonical = false }: { rewriteRelCanonical?: boolean },
+  ) {
+    super(opts);
+    this.proxyOrigin = request.proxyOrigin!;
+    this.localOrigin = request.localOrigin!;
+    this.altProxyOrigins = request.altProxyOrigins;
+
+    this.proxyTLD = request.proxyTLD || "";
+    this.localTLD = request.localTLD || "";
+
+    const proxy = new URL(this.proxyOrigin);
+    this.proxyHost = proxy.host;
+
+    const local = new URL(this.localOrigin);
+
+    this.localScheme = local.protocol;
+    this.httpToHttps = request.httpToHttpsNeeded;
+    this.rewriteRelCanonical = rewriteRelCanonical;
+  }
+
+  override rewriteUrl(urlStr: string): string {
+    if (urlStr.startsWith(this.proxyOrigin)) {
+      return this.localOrigin + urlStr.slice(this.proxyOrigin.length);
+    }
+
+    // if one of the alt origins, rewrite to local origin
+    if (this.altProxyOrigins) {
+      for (const altOrigin of this.altProxyOrigins) {
+        if (urlStr.startsWith(altOrigin)) {
+          return this.localOrigin + urlStr.slice(altOrigin.length);
+        }
+      }
+    }
+
+    if (this.proxyTLD && this.localTLD && urlStr.indexOf(this.proxyTLD) > 0) {
+      const url = new URL(urlStr);
+      if (url.host.endsWith(this.proxyTLD)) {
+        const host =
+          url.host.slice(0, -this.proxyTLD.length).replace(".", "-") +
+          this.localTLD;
+        const newUrl =
+          this.localScheme + "//" + host + url.href.slice(url.origin.length);
+        return newUrl;
+      }
+    }
+
+    if (this.httpToHttps) {
+      return urlStr.replace("http:", "https:");
+    }
+
+    return urlStr;
+  }
+
+  fullRewriteUrl(urlStr: string, forceAbs = false) {
+    // if local origin, use that still
+    if (urlStr.startsWith(this.proxyOrigin)) {
+      return this.localOrigin + urlStr.slice(this.proxyOrigin.length);
+    }
+
+    if (urlStr.startsWith("//" + this.proxyHost)) {
+      return this.localOrigin + urlStr.slice(this.proxyHost.length + 2);
+    }
+
+    // only rewrite absolute URLs!
+    if (
+      urlStr.startsWith("https://") ||
+      urlStr.startsWith("http://") ||
+      urlStr.startsWith("//")
+    ) {
+      return super.rewriteUrl(urlStr, forceAbs);
+    }
+
+    return urlStr;
+  }
+
+  override async rewriteHtml(
+    response: ArchiveResponse,
+  ): Promise<ArchiveResponse> {
+    const htmlRW = new ProxyHTMLRewriter(this);
+    return htmlRW.rewrite(response);
+  }
+
+  override rewriteJS(text: string, _: RWOpts): string {
+    return text;
+  }
+
+  override rewriteCSS(text: string): string {
+    if (this.httpToHttps) {
+      return super.rewriteCSS(text);
+    }
+    return text;
+  }
+
+  override rewriteJSON(text: string, _: RWOpts): string {
+    return text;
+  }
+
+  override rewriteImportmap(text: string) {
+    return text;
+  }
+
+  override updateBaseUrl(url: string): string {
+    return url;
+  }
+}
