@@ -361,6 +361,8 @@ export class MultiWACZ
 
     let numValid = 0;
     let numInvalid = 0;
+    // capture-player: 2026-11-12 に足した。署名の無い WACZ の数
+    let numUnsigned = 0;
 
     // [TODO]
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -383,11 +385,18 @@ export class MultiWACZ
         // @ts-expect-error [TODO] - TS2531 - Object is possibly 'null'. | TS2339 - Property 'id' does not exist on type 'ResourceEntry | PageEntry | DigestRefCount | (PageEntry & { size?: number | undefined; }) | { pages?: unknown[] | undefined; show?: boolean | undefined; title?: string | undefined; desc?: string | undefined; slug?: string | undefined; } | { ...; }'. | TS2531 - Object is possibly 'null'. | TS2339 - Property 'expected' does not exist on type 'ResourceEntry | PageEntry | DigestRefCount | (PageEntry & { size?: number | undefined; }) | { pages?: unknown[] | undefined; show?: boolean | undefined; title?: string | undefined; desc?: string | undefined; slug?: string | undefined; } | { ...; }'.
         info[res.id] = res.expected;
         // @ts-expect-error [TODO] - TS2531 - Object is possibly 'null'. | TS2339 - Property 'id' does not exist on type 'ResourceEntry | PageEntry | DigestRefCount | (PageEntry & { size?: number | undefined; }) | { pages?: unknown[] | undefined; show?: boolean | undefined; title?: string | undefined; desc?: string | undefined; slug?: string | undefined; } | { ...; }'.
-      } else if (res.id === "signature") {
-        // capture-player: 2026-11-12 に改変。署名も照合の結果で数える（上流は matched を見ずに有効に数えていた）
-        // @ts-expect-error [TODO] - TS2339 - Property 'matched' does not exist on type
-        if (res.matched === true) numValid++;
-        else numInvalid++;
+      } else if (res.id === "signature" || String(res.id).endsWith(":signature")) {
+        // capture-player: 2026-11-12 に改変。署名は照合の結果で数える（上流は matched を見ずに有効に数えていた）。
+        // 署名の無い WACZ（expected が空）は、有効にも無効にも数えない。合本の中の WACZ（id が <名>:signature）も同じ
+        // @ts-expect-error [TODO] - TS2339 - Property 'expected' does not exist on type
+        if (res.expected === "") {
+          numUnsigned++;
+          // @ts-expect-error [TODO] - TS2339 - Property 'matched' does not exist on type
+        } else if (res.matched === true) {
+          numValid++;
+        } else {
+          numInvalid++;
+        }
         // @ts-expect-error [TODO] - TS2531 - Object is possibly 'null'. | TS2339 - Property 'matched' does not exist on type 'ResourceEntry | PageEntry | DigestRefCount | (PageEntry & { size?: number | undefined; }) | { pages?: unknown[] | undefined; show?: boolean | undefined; title?: string | undefined; desc?: string | undefined; slug?: string | undefined; } | { ...; }'.
       } else if (res.matched === true) {
         numValid++;
@@ -401,6 +410,9 @@ export class MultiWACZ
     info.numInvalid = numInvalid;
     // @ts-expect-error [TODO] - TS4111 - Property 'numValid' comes from an index signature, so it must be accessed with ['numValid'].
     info.numValid = numValid;
+    // capture-player: 2026-11-12 に足した
+    // @ts-expect-error [TODO] - TS4111 - Property 'numUnsigned' comes from an index signature
+    info.numUnsigned = numUnsigned;
 
     return info;
   }

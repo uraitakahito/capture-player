@@ -4,6 +4,8 @@ import { verifyWACZSignature } from "./certutils";
 import { type MultiWACZ } from "./multiwacz";
 import { type WACZFile } from "./waczfile";
 import { type PageEntry } from "../types";
+// capture-player: 2026-11-12 に足した
+import { summarizeBrowserHive } from "./browserhive";
 
 export const MAIN_PAGES_JSON = "pages/pages.jsonl";
 export const EXTRA_PAGES_JSON = "pages/extraPages.jsonl";
@@ -174,6 +176,12 @@ export class WACZImporter {
   async loadLeafWACZPackage(datapackage: Record<string, any>) {
     // @ts-expect-error [TODO] - TS4111 - Property 'metadata' comes from an index signature, so it must be accessed with ['metadata'].
     const metadata = datapackage.metadata || {};
+
+    // capture-player: 2026-11-12 に改変。BrowserHive の欄の要約を、Archive Info に出す metadata に足す
+    const browserhive = summarizeBrowserHive(datapackage["browserhive:capture"]);
+    if (browserhive) {
+      metadata.browserhive = browserhive;
+    }
 
     let pagesHash = null;
 

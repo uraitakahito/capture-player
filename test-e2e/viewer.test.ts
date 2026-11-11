@@ -88,3 +88,38 @@ describe("本文を残さなかった文書", () => {
     expect(text).toContain("not part of the archived page");
   });
 });
+
+describe("Archive Info の BrowserHive の欄", () => {
+  const infoText = async (name: string): Promise<string> => {
+    const page = await open(name, "view=pages");
+    return waitFor(async () => {
+      const t = await deepText(page);
+      return /\d+ hashes verified|Validation/.test(t) ? t : undefined;
+    }, "Archive Info");
+  };
+
+  it("欠けた本文の数と例を出す", async () => {
+    const text = await infoText("truncated-document");
+    expect(text).toContain("Incomplete: 1 body truncated");
+    expect(text).toContain("http://capture-fixtures-2-a.browserhive:8080/redirect-target");
+    expect(text).toContain("this viewer does not stop it");
+  });
+
+  it("欠けの無い WACZ は完全と言い、写しの時点と文書を出す", async () => {
+    const text = await infoText("snapshots");
+    expect(text).toContain("Complete: every response body was kept");
+    expect(text).toContain("Snapshots: after-load, after-behaviors");
+    expect(text).toContain("Captured with BrowserHive 29.0.0 (cb0a278)");
+  });
+
+  it("署名の無い WACZ は、署名を有効にも無効にも数えず not signed と言う", async () => {
+    const text = await infoText("snapshots");
+    expect(text).toMatch(/0 hashes verified, 1 invalid, not signed/);
+  });
+
+  it("browserhive:capture の無い WACZ には欄を出さない", async () => {
+    const text = await infoText("no-browserhive");
+    expect(text).not.toContain("Captured with BrowserHive");
+    expect(text).not.toContain("Complete: every response body");
+  });
+});

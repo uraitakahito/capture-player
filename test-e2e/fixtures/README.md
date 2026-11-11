@@ -10,3 +10,4 @@
 | `truncated-document.wacz` | `c1208b32-…__e2e.wacz`（BrowserHive の e2e。文書が `WARC-Truncated: length`・本文 0 バイト） | 本文を残さなかった文書の帯                 |
 
 署名の証明書は、試験のためだけに `wacz-signer init --domain signer.example.invalid` で作った自己署名の CA の物。
+| `no-browserhive.wacz` | `snapshots.wacz` の `datapackage.json` から `browserhive:capture` だけを抜いた物 | BrowserHive の欄が出ない（他の作り手の WACZ の代わり） |
