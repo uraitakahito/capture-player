@@ -1,0 +1,9 @@
+# Ignore everything except src
+_includes
+.github
+.husky
+assets
+build
+docs
+examples
+ruffle

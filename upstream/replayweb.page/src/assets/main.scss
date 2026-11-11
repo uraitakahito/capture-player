@@ -1,0 +1,171 @@
+@charset "utf-8";
+
+@import "@shoelace-style/shoelace/dist/themes/light.css";
+@import "./shoelace.scss";
+
+/*$wr-green: #64e986;*/
+$wr-green: #55be6f;
+$wr-yellow:  #ffd975;
+$wr-dark-yellow: #ffc42e;
+$wr-light-blue: #43daff;
+$wr-med-blue: #27a0ff;
+$wr-dark-blue: #4876ff;
+$wr-accent: #1b0921;
+$wr-light-bg: #f0f8ff;
+
+$wr-light-green: #d2f9d6;
+$wr-dark-green: #459558;
+
+$primary: $wr-green;
+$info: $wr-light-bg;
+$warning: $wr-yellow;
+$link: $wr-dark-blue;
+
+$light: $wr-light-green;
+$dark: $wr-dark-green;
+
+$navbar-breakpoint: 840px;
+$navbar-height: 2.0rem;
+
+$modal-card-title-size: 1.2rem;
+
+
+// Set placeholder contrast to ~4.5:1 for WCAG AA compliance
+$input-placeholder-color: #757575;
+$input-disabled-placeholder-color: #707070;
+
+.input::placeholder, .textarea::placeholder, .select select::placeholder {
+    opacity: 1;
+}
+
+// focus styles for links to match
+a:focus {
+  color: #363636;
+}
+
+// focus/hover styles for buttons
+.file-label:focus-within .file-cta {
+    background-color: #e8e8e8;
+    color: #363636;
+}
+.button.is-primary:focus, .button.is-primary:hover, .button.is-primary:active {
+  background-color: $dark !important;
+  color: white !important;
+}
+//.button.is-warning:focus, .button.is-warning:hover, .button.is-warning:active {
+//  background-color: $wr-dark-yellow !important;
+//  color: black !important;
+//}
+
+.replay-bar .button {
+  margin: 0 1px;
+}
+
+.replay-bar .button:focus {
+  box-shadow: none !important;
+  outline: 1px dotted $wr-dark-blue;
+  outline: -webkit-focus-ring-color auto 1px;
+}
+
+.skip-link {
+    border: 0;
+    clip: rect(1px, 1px, 1px, 1px);
+    clip-path: inset(50%);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute !important;
+    width: 1px;
+    word-wrap: normal !important; /* Many screen reader and browser combinations announce broken words as they would appear visually. */
+
+    &:focus {
+        background-color: black;
+        border-radius: 3px;
+        box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
+        clip: auto !important;
+        clip-path: none;
+        color: white;
+        display: block;
+        font-family: inherit;
+        font-size: 1.3em;
+        font-weight: bold;
+        height: auto;
+        left: 5px;
+        line-height: normal;
+        padding: 15px 23px 14px;
+        text-decoration: none;
+        top: 5px;
+        width: auto;
+        z-index: 100000;
+    }
+}
+
+.main-scroll {
+  flex: 1;
+  scroll-behavior: smooth;
+  overflow-y: auto;
+  max-height: 100vh;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+
+@import "bulma/bulma";
+
+// Add html and body styles to :host for webcomponents
+:host {
+  --primary: #{$wr-green};
+  --info: #{$wr-light-bg};
+  --warning: #{$wr-yellow};
+  --link: #{$wr-dark-blue};
+
+  //background-color: $body-background-color;
+  font-size: $body-size;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  min-width: $body-min-width; // @todo(emma, 2023-11-06) investigate why this is here
+  text-rendering: $body-rendering;
+  text-size-adjust: 100%;
+
+  font-family: $body-family;
+  color: $body-color;
+  font-size: $body-font-size;
+  font-weight: $body-weight;
+  line-height: $body-line-height;
+
+  box-sizing: border-box;
+  
+}
+
+// Make available to screen readers while hiding element visually:
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+// Update size of small icons in controls
+.control.has-icons-left .icon.is-small, .control.has-icons-right .icon.is-small {
+  margin-top: 1px;
+  width: 2rem;
+  height: 2rem;
+  font-size: var(--sl-font-size-medium);
+}
+
+.control.has-icons-left .icon.is-small {
+  margin-left: 1px;
+}
+
+.control.has-icons-right .icon.is-small {
+  margin-right: 1px;
+}
+
