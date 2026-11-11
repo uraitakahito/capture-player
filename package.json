@@ -32,7 +32,7 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p test-e2e/tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
@@ -41,7 +41,8 @@
     "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm run check:upstream && pnpm test && pnpm run build",
     "build:viewer": "bash scripts/build-viewer.sh",
     "check:upstream": "node scripts/check-upstream.mjs",
-    "test:viewer": "bash scripts/test-viewer.sh"
+    "test:viewer": "bash scripts/test-viewer.sh",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -49,6 +50,7 @@
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.9",
+    "puppeteer-core": "25.13.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.1",
     "vitest": "^5.0.3"

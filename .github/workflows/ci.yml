@@ -76,6 +76,30 @@ jobs:
       - name: Tests capture-player added to upstream/
         run: bash scripts/test-viewer.sh
 
+      # The built viewer in headless Chrome, with BrowserHive WACZ files in
+      # test-e2e/fixtures. The server and the tests run on Node 26.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The runner's preinstalled Google Chrome. A pinned Chrome for Testing 156
+      # from @puppeteer/browsers crashed on start (segmentation fault) on
+      # ubuntu-24.04, even with --install-deps (2026-11-12).
+      - name: Chrome
+        run: |
+          path=$(command -v google-chrome)
+          "$path" --version
+          echo "CHROME_PATH=${path}" >> "$GITHUB_ENV"
+
+      - name: Viewer tests in a browser
+        run: pnpm run test:e2e
+
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
