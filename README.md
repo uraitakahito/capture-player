@@ -13,6 +13,40 @@ BrowserHive adds on top of WACZ.
 
 Work in progress (Jira CAPTURE-102).
 
+## What it changes
+
+Everything that differs from upstream is listed in [NOTICE.md](NOTICE.md). In short:
+
+- It never sends an archive URL to Webrecorder's helper proxy.
+- About says it is a modified version, where its source is, and its license.
+- It does **not** stop a replayed page from sending WebRTC (UDP) traffic. Pages
+  replay with their own JavaScript running in the viewer's browser, and neither
+  a Content-Security-Policy nor an injected script stops it (measured with
+  Chrome for Testing 156 on 2026-11-11).
+
+## Layout
+
+| Path                                             | What                                                                                                                                                             |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `upstream/wabac.js/`, `upstream/replayweb.page/` | The two upstream repositories, imported with `git subtree --squash`, with capture-player's changes on top                                                        |
+| `src/`                                           | The server, copied from replayweb-server: serves the viewer, proxies `/wacz/` out of an S3-compatible store, and answers page queries (`/q/`) for replay bundles |
+| `scripts/build-viewer.sh`                        | Builds the viewer from `upstream/` on Node 24 into `public/`                                                                                                     |
+| `scripts/check-upstream.mjs`                     | Fails when a file changed under `upstream/` is missing from `NOTICE.md`                                                                                          |
+
+## Develop
+
+```sh
+pnpm install
+NODENV_VERSION=24.15.0 pnpm run build:viewer   # Node 22–24: upstream's engines say node <25
+pnpm run check                                 # Node 26
+S3_BUCKET_URL=http://127.0.0.1:8333/browserhive node dist/main.js
+```
+
+Pull requests that run `git subtree pull` must be merged with a merge commit,
+not squashed: the next pull finds the previous import by the
+`git-subtree-dir:` / `git-subtree-split:` lines in its commit message. How to
+follow a new upstream release is in [docs/upstream.md](docs/upstream.md).
+
 ## License
 
 AGPL-3.0-or-later, the same as the two works it modifies. See [LICENSE](LICENSE).

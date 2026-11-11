@@ -11,7 +11,9 @@ import { initAutoIPFS } from "./ipfs";
 import { concatChunks } from "warcio";
 
 // todo: make configurable
-const HELPER_PROXY = "https://helper-proxy.webrecorder.workers.dev";
+// capture-player: 2026-11-12 に改変。アーカイブの URL を外の helper-proxy（Webrecorder の worker）へ送らない。
+// 上流は "https://helper-proxy.webrecorder.workers.dev"。空にして、下の 2 か所で問い合わせを飛ばす。
+const HELPER_PROXY = "";
 
 export type ResponseAbort = {
   response: Response;
@@ -234,7 +236,7 @@ class FetchRangeLoader extends BaseLoader {
       }
     }
 
-    if (this.length === null) {
+    if (this.length === null && HELPER_PROXY) {
       // attempt to get length via proxy
       try {
         const resp = await fetch(`${HELPER_PROXY}/c/${this.url}`);
@@ -537,6 +539,9 @@ class GoogleDriveLoader extends BaseLoader {
   }
 
   async refreshPublicUrl() {
+    if (!HELPER_PROXY) {
+      return false;
+    }
     try {
       const resp = await fetch(`${HELPER_PROXY}/g/${this.fileId}`);
       const json = await resp.json();

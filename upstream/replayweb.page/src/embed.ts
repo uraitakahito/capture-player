@@ -94,7 +94,8 @@ class Embed extends LitElement {
 
   replayfile = defaultReplayFile;
   mainElementName = "replay-app-main";
-  appName = "ReplayWeb.page";
+  // capture-player: 2026-11-12 に改変。名前を capture-player に
+  appName = "capture-player";
   customConfig: Record<string, string | boolean> | null = null;
   reloadCount = 0;
 

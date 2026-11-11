@@ -4,6 +4,9 @@ declare module "*.scss";
 declare module "*.sass";
 declare const __SW_NAME__: string;
 declare const __HELPER_PROXY__: string;
+// capture-player: 2026-11-12 に足した。build の時に webpack.capture-player.cjs が入れる
+declare const __CAPTURE_PLAYER_VERSION__: string;
+declare const __CAPTURE_PLAYER_SOURCE_URL__: string;
 declare const __GDRIVE_CLIENT_ID__: string;
 declare const __GDRIVE_API__: string;
 declare const __VERSION__: string;

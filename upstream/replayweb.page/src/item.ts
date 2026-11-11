@@ -194,7 +194,8 @@ class Item extends LitElement {
   favIconUrl = "";
 
   @property({ type: String })
-  appName = "ReplayWeb.page";
+  // capture-player: 2026-11-12 に改変。名前を capture-player に
+  appName = "capture-player";
 
   @property({ type: String })
   appVersion = VERSION;

@@ -16,7 +16,6 @@ import {
   updateFaviconLinks,
 } from "./misc";
 
-import brandLockupColor from "~assets/brand/replaywebpage-lockup-color.svg";
 import rwpLogo from "~assets/brand/replaywebpage-icon-color.svg";
 
 import fasHelp from "@fortawesome/fontawesome-free/svgs/solid/question-circle.svg";
@@ -171,8 +170,10 @@ export class ReplayWebApp extends LitElement {
     dragEvent.preventDefault();
   };
 
+  // capture-player: 2026-11-12 に改変。名前を capture-player にし、ロゴを字にし、About に改変の旨・ソース・
+  // AGPL・再生の限り（WebRTC）を書く。
   get appName() {
-    return "ReplayWeb.page";
+    return "capture-player";
   }
 
   get homeUrl() {
@@ -316,13 +317,10 @@ export class ReplayWebApp extends LitElement {
   }
 
   renderNavBrand() {
-    return html` <fa-icon
-      .svg="${brandLockupColor}"
-      size=""
-      width="9.5rem"
-      height="1.25rem"
-      aria-hidden="true"
-    ></fa-icon>`;
+    return html`<span
+      style="font-weight: 700; letter-spacing: 0.02em; white-space: nowrap"
+      >capture-player</span
+    >`;
   }
 
   renderNavBar() {
@@ -339,7 +337,7 @@ export class ReplayWebApp extends LitElement {
                 <a
                   href="${this.homeUrl}"
                   class="navbar-item wr-logo-item"
-                  aria-label="ReplayWeb.page Home"
+                  aria-label="capture-player Home"
                 >
                   ${this.renderNavBrand()}
                 </a>
@@ -809,20 +807,15 @@ export class ReplayWebApp extends LitElement {
   renderAbout() {
     return html` <sl-dialog
       class="about-dialog"
-      label=${`About ReplayWeb.page ${IS_APP ? "App" : ""}`}
+      label=${`About capture-player`}
       ?open=${this.showAbout}
       @sl-after-hide=${this.onAboutClose}
     >
       <div class="about-dialog-header">
         <div class="has-text-centered" style="width: 220px">
-          <fa-icon
-            size="3rem"
-            .svg=${rwpLogo}
-            aria-label="ReplayWeb.page Logo"
-            role="img"
-          ></fa-icon>
+          <div style="font-weight: 700; font-size: 1.4rem">capture-player</div>
           <div style="font-size: smaller; margin-bottom: 1em">
-            ${IS_APP ? "App" : ""} v${VERSION}
+            ${__CAPTURE_PLAYER_VERSION__} (ReplayWeb.page v${VERSION})
           </div>
         </div>
 
@@ -844,10 +837,23 @@ export class ReplayWebApp extends LitElement {
       </div>
 
       <p>
-        Full source code is available
-        <a href="https://github.com/webrecorder/replayweb.page" target="_blank"
-          >on GitHub</a
+        capture-player is a modified version of ReplayWeb.page ${VERSION} and
+        wabac.js, made for Web Capture (modified since 2026-11-12). The
+        changes are listed in NOTICE.md in the source.
+      </p>
+
+      <p>
+        Full source code of this version is available
+        <a href="${__CAPTURE_PLAYER_SOURCE_URL__}" target="_blank">on GitHub</a>.
+        It is free software under the
+        <a href="/LICENSE" target="_blank"
+          >GNU Affero General Public License v3 or later</a
         >.
+      </p>
+
+      <p>
+        Pages replay with their own JavaScript running in your browser. A page
+        can still send WebRTC (UDP) traffic out; this viewer does not stop it.
       </p>
 
       <p>
@@ -856,7 +862,7 @@ export class ReplayWebApp extends LitElement {
       </p>
 
       <p>
-        ReplayWeb.page is developed by
+        ReplayWeb.page and wabac.js are developed by
         <a href="https://webrecorder.net/" target="_blank">Webrecorder</a>.
       </p>
 

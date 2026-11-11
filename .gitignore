@@ -1,0 +1,12 @@
+node_modules
+.DS_Store
+private-note
+dist
+public
+coverage
+upstream/**/node_modules
+upstream/**/dist
+upstream/**/dist-wombat
+upstream/**/.yarn/install-state.gz
+upstream/replayweb.page/ui.js
+upstream/replayweb.page/sw.js

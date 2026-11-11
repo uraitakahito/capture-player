@@ -14,7 +14,8 @@ export class SWManager {
   constructor({
     name = "sw.js",
     scope = "./",
-    appName = "ReplayWeb.page",
+    // capture-player: 2026-11-12 に改変。名前を capture-player に
+    appName = "capture-player",
     requireSubdomainIframe = false,
   } = {}) {
     this.name = name;
