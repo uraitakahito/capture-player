@@ -1,0 +1,48 @@
+# Once a week, compare the versions under upstream/ with the latest on npm and
+# open an issue when Webrecorder has released a newer ReplayWeb.page or wabac.js.
+# What to do with the issue is in docs/upstream.md. `schedule` only runs from
+# the default branch.
+name: upstream
+
+on:
+  schedule:
+    - cron: "23 0 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Compare with npm
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          have_rwp=$(jq -r .version upstream/replayweb.page/package.json)
+          have_wabac=$(jq -r .version upstream/wabac.js/package.json)
+          npm_rwp=$(npm view replaywebpage version)
+          npm_wabac=$(npm view @webrecorder/wabac version)
+          echo "replaywebpage: upstream/ ${have_rwp}, npm ${npm_rwp}"
+          echo "wabac.js:      upstream/ ${have_wabac}, npm ${npm_wabac}"
+          if [ "${have_rwp}" = "${npm_rwp}" ] && [ "${have_wabac}" = "${npm_wabac}" ]; then
+            echo "up to date"
+            exit 0
+          fi
+          title="上流に新しい版: replaywebpage ${npm_rwp}・wabac.js ${npm_wabac}"
+          open=$(gh issue list --state open --search "\"${title}\" in:title" --json number --jq length)
+          if [ "${open}" != "0" ]; then
+            echo "an issue is already open"
+            exit 0
+          fi
+          printf '%s\n' \
+            "upstream/ は replaywebpage ${have_rwp}・wabac.js ${have_wabac}。npm の最新は replaywebpage ${npm_rwp}・wabac.js ${npm_wabac}。" \
+            "" \
+            "取り込む手順は docs/upstream.md。replayweb-server（互換の再生）も同じ版に上げるかを、そのときに決める。" \
+            > body.md
+          gh issue create --title "${title}" --body-file body.md
