@@ -52,9 +52,27 @@ export type ItemType = {
   desc?: string;
   description?: string;
   resources?: { path: string; name: string }[];
+  // capture-player: 2026-11-12 に足した。wabac の src/wacz/browserhive.ts の要約
+  browserhive?: {
+    profile?: string;
+    build?: string;
+    browser?: string;
+    document?: string;
+    snapshots: string[];
+    signature?: string;
+    viewport?: string;
+    complete?: boolean;
+    bodyless: number;
+    truncated: number;
+    unintercepted: number;
+    crashed: number;
+    examples: string[];
+  };
   verify?: {
     numValid?: number;
     numInvalid?: number;
+    // capture-player: 2026-11-12 に足した
+    numUnsigned?: number;
     domain?: string;
     certFingerprint?: string;
     datapackageHash?: string;

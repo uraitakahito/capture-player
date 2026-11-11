@@ -17,6 +17,16 @@ Work in progress (Jira CAPTURE-102).
 
 Everything that differs from upstream is listed in [NOTICE.md](NOTICE.md). In short:
 
+- It checks DER (ASN.1) ECDSA signatures, as made by wacz-signer and authsign.
+  Upstream passed them to WebCrypto as they were, so they never matched, and
+  then counted the signature as verified anyway. capture-player counts a
+  signature by whether it matched, and an unsigned archive as "not signed".
+- In the page list, a BrowserHive snapshot shows its stage ("Snapshot after
+  load") and the original document URL instead of its `urn:`.
+- A document whose body the archive did not keep (`WARC-Truncated`) shows a
+  notice with the reason instead of an empty page.
+- Archive Info has a BrowserHive field: whether every body was kept, what was
+  not, the document, snapshots, viewport and BrowserHive version.
 - It never sends an archive URL to Webrecorder's helper proxy.
 - About says it is a modified version, where its source is, and its license.
 - It does **not** stop a replayed page from sending WebRTC (UDP) traffic. Pages

@@ -143,6 +143,8 @@ class ItemInfo extends LitElement {
     const {
       numValid = 0,
       numInvalid = 0,
+      // capture-player: 2026-11-12 に足した。署名の無い WACZ の数（wabac の multiwacz.ts）
+      numUnsigned = 0,
       domain,
       certFingerprint,
       datapackageHash,
@@ -200,13 +202,17 @@ class ItemInfo extends LitElement {
         : nothing}
 
       <wr-labeled-field label="Validation" class="column">
-        ${numValid > 0 || numInvalid > 0
+        ${numValid > 0 || numInvalid > 0 || numUnsigned > 0
           ? html` <p>
               ${numValid} hashes
-              verified${numInvalid ? html`, ${numInvalid} invalid` : nothing}
+              verified${numInvalid ? html`, ${numInvalid} invalid` : nothing}${numUnsigned
+                ? html`, not signed`
+                : nothing}
             </p>`
           : html` Not Available`}
       </wr-labeled-field>
+
+      ${this.renderBrowserHive()}
 
       <wr-labeled-field
         label="Package Hash"
@@ -228,6 +234,54 @@ class ItemInfo extends LitElement {
         ${item!.onDemand ? "Download On-Demand" : "Fully Local"}
       </wr-labeled-field>
     </div>`;
+  }
+
+  // capture-player: 2026-11-12 に改変。BrowserHive の WACZ の欄（datapackage の browserhive:capture）の要約を出す。
+  // 上流の Archive Info は、この欄を読まない。
+  renderBrowserHive() {
+    const bh = this.item?.browserhive;
+    if (!bh) {
+      return nothing;
+    }
+    const missing = bh.truncated + bh.bodyless + bh.unintercepted + bh.crashed;
+    return html`<wr-labeled-field label="BrowserHive" class="column">
+      <div style="display: block">
+      <p>
+        ${bh.complete === false
+          ? html`<strong>Incomplete:</strong> ${bh.truncated} body truncated,
+              ${bh.bodyless} without a body, ${bh.unintercepted} not
+              intercepted, ${bh.crashed} crashed`
+          : missing === 0
+            ? "Complete: every response body was kept"
+            : html`${missing} responses not fully kept`}
+      </p>
+      ${bh.examples.length
+        ? html`<ul style="padding: revert; word-break: break-all">
+            ${map(bh.examples, (url) => html`<li>${url}</li>`)}
+          </ul>`
+        : nothing}
+      ${bh.document ? html`<p>Document: ${bh.document}</p>` : nothing}
+      ${bh.snapshots.length
+        ? html`<p>Snapshots: ${bh.snapshots.join(", ")}</p>`
+        : nothing}
+      ${bh.viewport ? html`<p>Viewport: ${bh.viewport}</p>` : nothing}
+      ${bh.signature ? html`<p>Signature policy: ${bh.signature}</p>` : nothing}
+      ${bh.build || bh.browser
+        ? html`<p>
+            Captured with BrowserHive ${bh.build || ""}${bh.browser
+              ? html` on ${bh.browser}`
+              : nothing}
+          </p>`
+        : nothing}
+      ${bh.profile
+        ? html`<p><a href="${bh.profile}" target="_blank">Profile</a></p>`
+        : nothing}
+      <p>
+        Pages replay with their own JavaScript. A page can still send WebRTC
+        (UDP) traffic out; this viewer does not stop it.
+      </p>
+      </div>
+    </wr-labeled-field>`;
   }
 
   render() {
