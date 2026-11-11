@@ -89,11 +89,15 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Chrome for Testing
+        # --install-deps: the shared libraries Chrome needs (apt, with sudo).
+        # Ubuntu 24.04 restricts unprivileged user namespaces with AppArmor,
+        # which crashes Chrome on start; the runner allows lifting it.
         run: |
-          npx -y @puppeteer/browsers@2.13.0 install chrome@156.0.8078.47 --path "$RUNNER_TEMP/browsers"
+          npx -y @puppeteer/browsers@2.13.0 install chrome@156.0.8078.47 --path "$RUNNER_TEMP/browsers" --install-deps
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           path="$RUNNER_TEMP/browsers/chrome/linux-156.0.8078.47/chrome-linux64/chrome"
           test -x "$path"
-          "$path" --version
+          "$path" --headless=new --no-sandbox --version
           echo "CHROME_PATH=${path}" >> "$GITHUB_ENV"
 
       - name: Viewer tests in a browser
