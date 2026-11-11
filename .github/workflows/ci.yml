@@ -55,6 +55,27 @@ jobs:
       - name: Build
         run: pnpm run build
 
+  # The viewer itself: build upstream/ on Node 24 (upstream's engines say node <25)
+  # and run the tests capture-player added there.
+  viewer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Enable corepack
+        run: npm i -g corepack@0.35.0 && corepack enable
+
+      - name: Build the viewer
+        run: bash scripts/build-viewer.sh
+
+      - name: Tests capture-player added to upstream/
+        run: bash scripts/test-viewer.sh
+
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15

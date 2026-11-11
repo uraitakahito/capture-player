@@ -384,7 +384,10 @@ export class MultiWACZ
         info[res.id] = res.expected;
         // @ts-expect-error [TODO] - TS2531 - Object is possibly 'null'. | TS2339 - Property 'id' does not exist on type 'ResourceEntry | PageEntry | DigestRefCount | (PageEntry & { size?: number | undefined; }) | { pages?: unknown[] | undefined; show?: boolean | undefined; title?: string | undefined; desc?: string | undefined; slug?: string | undefined; } | { ...; }'.
       } else if (res.id === "signature") {
-        numValid++;
+        // capture-player: 2026-11-12 に改変。署名も照合の結果で数える（上流は matched を見ずに有効に数えていた）
+        // @ts-expect-error [TODO] - TS2339 - Property 'matched' does not exist on type
+        if (res.matched === true) numValid++;
+        else numInvalid++;
         // @ts-expect-error [TODO] - TS2531 - Object is possibly 'null'. | TS2339 - Property 'matched' does not exist on type 'ResourceEntry | PageEntry | DigestRefCount | (PageEntry & { size?: number | undefined; }) | { pages?: unknown[] | undefined; show?: boolean | undefined; title?: string | undefined; desc?: string | undefined; slug?: string | undefined; } | { ...; }'.
       } else if (res.matched === true) {
         numValid++;

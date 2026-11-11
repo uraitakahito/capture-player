@@ -113,7 +113,8 @@ export async function verifyWACZSignature({
   const sigValid = await crypto.subtle.verify(
     ecdsaSignParams,
     publicKeyCrypto,
-    signatureBuff,
+    // capture-player: 2026-11-12 に改変。DER の署名を r‖s に直してから照合する（上流は DER のまま渡し、常に false）
+    derToRawSignature(signatureBuff, publicKeyCrypto),
     encoder.encode(hash),
   );
 
@@ -172,3 +173,53 @@ export async function verifyWACZSignature({
 //
 //     return signature;
 //   }
+
+// capture-player: 2026-11-12 に足した。WebCrypto の ECDSA は r‖s の形しか読まない。DER（ASN.1 の SEQUENCE { INTEGER r, INTEGER s }）で
+// 来た署名は、曲線の長さに左を 0 で詰めて r‖s に直す。r‖s で来た物と、読めない物はそのまま返す。
+export function derToRawSignature(
+  sig: Uint8Array,
+  key: CryptoKey,
+): Uint8Array {
+  const curve = (key.algorithm as EcKeyAlgorithm).namedCurve;
+  const size = curve === "P-384" ? 48 : curve === "P-521" ? 66 : 32;
+  if (sig.length === size * 2 || sig[0] !== 0x30) {
+    return sig;
+  }
+  let i = 1;
+  let len = sig[i++]!;
+  if (len & 0x80) {
+    const bytes = len & 0x7f;
+    len = 0;
+    for (let k = 0; k < bytes; k++) {
+      len = (len << 8) | sig[i++]!;
+    }
+  }
+  if (i + len !== sig.length) {
+    return sig;
+  }
+  const ints: Uint8Array[] = [];
+  for (let k = 0; k < 2; k++) {
+    if (sig[i++] !== 0x02) {
+      return sig;
+    }
+    const n = sig[i++]!;
+    let v = sig.subarray(i, i + n);
+    i += n;
+    while (v.length > size && v[0] === 0) {
+      v = v.subarray(1);
+    }
+    if (v.length > size) {
+      return sig;
+    }
+    const padded = new Uint8Array(size);
+    padded.set(v, size - v.length);
+    ints.push(padded);
+  }
+  if (i !== sig.length) {
+    return sig;
+  }
+  const out = new Uint8Array(size * 2);
+  out.set(ints[0]!, 0);
+  out.set(ints[1]!, size);
+  return out;
+}

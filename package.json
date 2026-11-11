@@ -40,7 +40,8 @@
     "format:check": "prettier --check .",
     "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm run check:upstream && pnpm test && pnpm run build",
     "build:viewer": "bash scripts/build-viewer.sh",
-    "check:upstream": "node scripts/check-upstream.mjs"
+    "check:upstream": "node scripts/check-upstream.mjs",
+    "test:viewer": "bash scripts/test-viewer.sh"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
