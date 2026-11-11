@@ -1,0 +1,53 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "module": "esnext",
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable"
+    ],
+    "target": "es6",
+    "moduleResolution": "Bundler",
+    "allowJs": true,
+    "strict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "declarationDir": "./dist/types",
+    "noImplicitAny": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "sourceMap": true,
+    "inlineSources": true,
+    "skipLibCheck": true,
+    "plugins": [
+      {
+        "name": "ts-lit-plugin",
+        "strict": true,
+        "rules": {
+          "no-missing-import": "off"
+        },
+        "maxNodeModuleImportDepth": -1
+      }
+    ],
+    "incremental": true,
+    "paths": {
+      "flexsearch": [
+        "./node_modules/@types/flexsearch"
+      ],
+      "~assets/*": [
+        "./src/assets/*"
+      ],
+      "~icons/*": [
+        "./node_modules/@shoelace-style/shoelace/dist/assets/icons/*",
+        "./node_modules/@fortawesome/fontawesome-free/svgs/*",
+      ],
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js",
+    "src/**/*.d.ts"
+  ]
+}

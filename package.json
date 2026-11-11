@@ -1,0 +1,228 @@
+{
+  "name": "replaywebpage",
+  "productName": "ReplayWeb.page",
+  "version": "2.5.0",
+  "description": "Serverless Web Archive Replay",
+  "repository": "https://github.com/webrecorder/replayweb.page",
+  "homepage": "https://replayweb.page/",
+  "author": "Webrecorder Software",
+  "license": "AGPL-3.0-or-later",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./src/electron-*": "./src/electron-*.ts",
+    "./index.html": "./index.html",
+    "./utils": {
+      "types": "./dist/types/utils/index.d.ts",
+      "default": "./dist/utils.js"
+    }
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.15.4",
+    "@shoelace-style/shoelace": "~2.15.1",
+    "@webrecorder/wabac": "^2.27.1",
+    "bulma": "^0.9.3",
+    "electron-log": "^4.4.1",
+    "electron-updater": "^6.8.9",
+    "flexsearch": "^0.7.31",
+    "keyword-mark-element": "^0.2.0",
+    "lit": "3.1.1",
+    "marked": "^4.0.10",
+    "micromark": "^4.0.1",
+    "micromark-extension-gfm-strikethrough": "^2.1.0",
+    "mime-types": "^3.0.1",
+    "minimist": "^1.2.5",
+    "pretty-bytes": "^5.6.0",
+    "process": "^0.11.10",
+    "register-service-worker": "^1.7.2",
+    "split.js": "^1.6.4",
+    "stream-browserify": "^3.0.0",
+    "tsconfig-paths-webpack-plugin": "^4.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/flexsearch": "^0.7.3",
+    "@types/lodash": "^4.17.5",
+    "@types/mime-types": "^2.1.4",
+    "@types/minimist": "^1.2.5",
+    "@types/node": "^22.15.18",
+    "@typescript-eslint/eslint-plugin": "^6.12.0",
+    "@typescript-eslint/parser": "^6.12.0",
+    "copy-webpack-plugin": "^9.0.1",
+    "css-loader": "^6.2.0",
+    "electron": "^43.3.0",
+    "electron-builder": "^27.0.0-alpha.6",
+    "electron-notarize": "^1.2.2",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-lit": "^1.11.0",
+    "eslint-plugin-wc": "^2.0.4",
+    "husky": "^8.0.0",
+    "lint-staged": "^14.0.0",
+    "mini-css-extract-plugin": "^2.3.0",
+    "prettier": "^3.0.1",
+    "sass-embedded": "^1.70.0",
+    "sass-loader": "^13.3.2",
+    "serve": "^14.2.4",
+    "style-loader": "^3.2.1",
+    "ts-lit-plugin": "^2.0.0-pre.1",
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.2.2",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.4",
+    "webpack-merge": "^5.10.0"
+  },
+  "resolutions": {
+    "lit": "3.1.1"
+  },
+  "files": [
+    "/dist",
+    "/src",
+    "/ruffle",
+    "/sw.js",
+    "/ui.js",
+    "/index.html",
+    "adblock/adblock.gz"
+  ],
+  "scripts": {
+    "build": "webpack --mode production && ./adblock/fetch-adblock.sh",
+    "build-dev": "webpack --mode development",
+    "build-docs": "yarn run build && cd mkdocs && ./copy-site.sh && mkdocs build",
+    "start-prod": "serve -l 9990 --cors",
+    "start-docs-prod": "yarn run build-docs && cd mkdocs/_genhtml && serve -l 9990 --cors",
+    "start-dev": "webpack serve --mode development",
+    "start-docs": "yarn run build-dev && cd mkdocs && ./copy-site.sh && mkdocs serve",
+    "start-electron": "NODE_ENV=development electron ./dist/electron.js ${1:-}",
+    "test-start-prod": "yarn run build-docs; cp tests/embed/test-serve.json mkdocs/_genhtml/serve.json; cd mkdocs/_genhtml; serve -l 9990 --cors",
+    "test-start-embed": "cp tests/embed/iframe-test.html mkdocs/_genhtml/; cd tests/embed; serve -l 8020",
+    "test-start-sandbox": "cd tests/embed/sandbox; serve -l 8030",
+    "update-ruffle": "./ruffle/download-latest-ruffle.sh",
+    "pack": "CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --publish never",
+    "pack-signed": "electron-builder",
+    "dist": "yarn run build && yarn run pack",
+    "dist-dev": "yarn run build-dev && yarn run pack",
+    "release": "yarn run build && electron-builder --publish always",
+    "lint": "eslint ./",
+    "format": "prettier --write ./",
+    "prepare": "husky install; yarn node scripts/build-if-not-git-repo.js"
+  },
+  "build": {
+    "afterSign": "build/notarize.js",
+    "productName": "ReplayWeb.page",
+    "appId": "net.webrecorder.replaywebpage",
+    "artifactName": "${productName}-${version}.${ext}",
+    "extraMetadata": {
+      "main": "dist/electron.js"
+    },
+    "files": [
+      "!**/node_modules/**/*",
+      "dist/*.js",
+      "dist/prebuilds/${platform}-${arch}/*",
+      "dist/build/*",
+      "ui.js",
+      "sw.js",
+      "index.html",
+      "ruffle",
+      "webmanifest.json"
+    ],
+    "dmg": {
+      "title": "ReplayWeb.page"
+    },
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": "universal"
+        },
+        {
+          "target": "zip",
+          "arch": "universal"
+        }
+      ],
+      "notarize": false,
+      "electronLanguages": [
+        "en"
+      ],
+      "extraResources": [
+        "plugins-mac"
+      ],
+      "sign": {
+        "entitlements": "build/entitlements.mac.plist",
+        "entitlementsInherit": "build/entitlements.mac.plist",
+        "hardenedRuntime": true,
+        "gatekeeperAssess": false
+      },
+      "universal": {
+        "singleArchFiles": "{dist/prebuilds,dist/prebuilds/**}"
+      }
+    },
+    "linux": {
+      "category": "Archiving;Utility;",
+      "target": [
+        "AppImage"
+      ],
+      "extraResources": [
+        "plugins-linux"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "extraResources": [
+        "plugins-win"
+      ],
+      "sign": {
+        "type": "azure",
+        "endpoint": "https://wus2.codesigning.azure.net/",
+        "codeSigningAccountName": "webrecorder",
+        "certificateProfileName": "webrecorder",
+        "publisherName": "CN=Webrecorer Software LLC"
+      }
+    },
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "fileAssociations": [
+      {
+        "ext": "warc",
+        "name": "WARC File",
+        "description": "WARC File",
+        "role": "Viewer"
+      },
+      {
+        "ext": "warc.gz",
+        "name": "WARC File",
+        "description": "WARC File",
+        "role": "Viewer"
+      },
+      {
+        "ext": "har",
+        "name": "HAR File",
+        "description": "HAR File",
+        "role": "Viewer"
+      },
+      {
+        "ext": "wacz",
+        "name": "WACZ File",
+        "description": "Web Archive Collection Zipped (WACZ)",
+        "role": "Viewer"
+      }
+    ]
+  },
+  "engines": {
+    "node": ">=22 <25"
+  },
+  "lint-staged": {
+    "*.ts": "prettier --write"
+  },
+  "prettier": {
+    "trailingComma": "all"
+  },
+  "packageManager": "yarn@4.17.1"
+}

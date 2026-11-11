@@ -1,0 +1,8 @@
+sw.js
+ui.js
+index.html
+embed.html
+webmanifest.json
+favicons
+ruffle
+adblock
