@@ -269,6 +269,13 @@ class PageEntry extends LitElement {
   render() {
     const p = this.page!;
     const { date } = getPageDateTS(p);
+    // capture-player: 2026-11-12 に改変。BrowserHive の写し（urn:browserhive:snapshot:<時点>:<URL>）の行は、
+    // 題に時点を添え、URL の欄に元の文書の URL を出す。リンクは urn のまま（記録を引く鍵）。
+    const snapshot = snapshotOf(p.url, (p as { stage?: unknown }).stage);
+    const shownUrl = snapshot ? snapshot.url : p.url;
+    const shownTitle = snapshot
+      ? `${snapshot.label}: ${p.title || snapshot.url}`
+      : p.title || p.url;
 
     const hasSize = typeof p.size === "number";
 
@@ -317,15 +324,13 @@ class PageEntry extends LitElement {
                 >
                   <p class="page-title text">
                     ${this.thumbnailValid ? this.renderFavicon() : nothing}
-                    <keyword-mark
-                      keywords="${this.query}"
-                      title="${p.title || p.url}"
-                      >${p.title || p.url}</keyword-mark
+                    <keyword-mark keywords="${this.query}" title="${shownTitle}"
+                      >${shownTitle}</keyword-mark
                     >
                   </p>
                   <p class="page-url has-text-dark text">
-                    <keyword-mark keywords="${this.query}" title="${p.url}"
-                      >${p.url}</keyword-mark
+                    <keyword-mark keywords="${this.query}" title="${shownUrl}"
+                      >${shownUrl}</keyword-mark
                     >
                   </p>
                   <p class="text is-inline-date">
@@ -499,3 +504,22 @@ class PageEntry extends LitElement {
 customElements.define("wr-page-entry", PageEntry);
 
 export { PageEntry };
+
+// capture-player: 2026-11-12 に足した。BrowserHive の WARC Profile の写しの URI から、時点と元の文書の URL を読む。
+const SNAPSHOT_URN = /^urn:browserhive:snapshot:([a-z-]+):(.+)$/;
+const STAGE_LABELS: Record<string, string> = {
+  "after-load": "Snapshot after load",
+  "after-behaviors": "Snapshot after scripts",
+};
+
+export function snapshotOf(
+  url: string,
+  stage: unknown,
+): { label: string; url: string } | undefined {
+  const m = SNAPSHOT_URN.exec(url);
+  if (!m) {
+    return undefined;
+  }
+  const name = typeof stage === "string" && stage ? stage : m[1]!;
+  return { label: STAGE_LABELS[name] ?? `Snapshot (${name})`, url: m[2]! };
+}

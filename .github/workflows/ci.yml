@@ -76,6 +76,26 @@ jobs:
       - name: Tests capture-player added to upstream/
         run: bash scripts/test-viewer.sh
 
+      # The built viewer in headless Chrome, with BrowserHive WACZ files in
+      # test-e2e/fixtures. The server and the tests run on Node 26.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Chrome for Testing
+        run: |
+          path=$(npx -y @puppeteer/browsers@2.13.0 install chrome@156.0.8078.47 --path "$RUNNER_TEMP/browsers" --format '{{path}}')
+          echo "CHROME_PATH=${path}" >> "$GITHUB_ENV"
+
+      - name: Viewer tests in a browser
+        run: pnpm run test:e2e
+
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15

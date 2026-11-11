@@ -1,0 +1,8 @@
+{
+  // e2e の試験だけ。page.evaluate の中は Chrome で走るので DOM の型を足す。
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM"]
+  },
+  "include": ["**/*.ts", "../src/**/*"]
+}
