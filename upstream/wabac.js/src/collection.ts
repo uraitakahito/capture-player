@@ -25,6 +25,8 @@ import {
   type InitColl,
 } from "./types";
 import { getDownloadAttachmentFilename } from "./detectfiletype";
+// capture-player: 2026-11-12 に足した
+import { TRUNCATED_HEADER } from "./warcloader";
 
 export type Prefixes = {
   static: string;
@@ -260,6 +262,16 @@ export class Collection {
     } else if (response instanceof Response) {
       // custom Response, not an ArchiveResponse, just return
       return response;
+    }
+
+    // capture-player: 2026-11-12 に改変。本文を残さなかった文書（WARC-Truncated）は、白い頁の代わりに、
+    // ビューアが出したと分かる知らせの頁を返す。画像などの部分の応答は今のまま。
+    const truncated = response.headers.get(TRUNCATED_HEADER);
+    if (
+      truncated &&
+      (request.destination === "document" || request.destination === "iframe")
+    ) {
+      return truncatedNoticeResponse(requestURL, requestTS, truncated);
     }
 
     if (!response.noRW) {
@@ -807,4 +819,33 @@ ${this.injectScripts.map((script) => `<script src='${this.proxyPrefix}${script}'
 <!-- End WB Insert -->
 `;
   }
+}
+
+// capture-player: 2026-11-12 に足した。本文を残さなかった文書の代わりに見せる頁。記録の中身ではないことを書く。
+function truncatedNoticeResponse(url: string, ts: string, reason: string) {
+  const esc = (v: string) =>
+    v.replace(
+      /[&<>"']/g,
+      (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+          c
+        ]!,
+    );
+  const body = `<!doctype html>
+<html><head><meta charset="utf-8"><title>Body not kept</title>
+<style>body{font-family:system-ui,sans-serif;margin:2rem;max-width:42rem;line-height:1.6;color:#1f2330}
+.box{border-left:4px solid #b86f00;background:#fdf1dc;padding:1rem 1.25rem}code{word-break:break-all}</style>
+</head><body><div class="box">
+<p><strong>The archive did not keep the body of this document.</strong></p>
+<p>URL: <code>${esc(url)}</code><br>Captured: <code>${esc(ts)}</code><br>WARC-Truncated: <code>${esc(reason)}</code></p>
+<p>This notice is shown by capture-player. It is not part of the archived page. An unmodified ReplayWeb.page shows an empty page here.</p>
+</div></body></html>`;
+  return new Response(body, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'",
+      [TRUNCATED_HEADER]: reason,
+    },
+  });
 }

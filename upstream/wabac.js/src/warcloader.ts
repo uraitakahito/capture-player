@@ -13,6 +13,9 @@ import { extractText } from "./extract";
 import { BaseParser } from "./baseparser";
 import { type CollMetadata, type ResourceEntry } from "./types";
 
+// capture-player: 2026-11-12 に足した。WARC-Truncated の値（理由）を運ぶ応答の見出し
+export const TRUNCATED_HEADER = "x-capture-player-truncated";
+
 // ===========================================================================
 class WARCLoader extends BaseParser {
   reader: Source;
@@ -380,6 +383,13 @@ class WARCLoader extends BaseParser {
     const ts = date ? new Date(date).getTime() : Date.now();
 
     const respHeaders = Object.fromEntries(headers.entries());
+
+    // capture-player: 2026-11-12 に改変。記録が本文を残さなかった（WARC-Truncated）ことを、応答の見出しで
+    // collection.ts へ渡す。上流は WARC-Truncated を読まず、空の本文を空の 200 として返していた。
+    const truncated = record.warcHeader("WARC-Truncated");
+    if (truncated) {
+      respHeaders[TRUNCATED_HEADER] = truncated;
+    }
 
     const digest = record.warcPayloadDigest || null;
 

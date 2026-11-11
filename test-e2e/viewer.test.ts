@@ -70,3 +70,21 @@ describe("写しの時点の題", () => {
     expect(text).not.toContain("urn:browserhive:snapshot:");
   });
 });
+
+describe("本文を残さなかった文書", () => {
+  it("WARC-Truncated の文書は、白い頁でなく知らせと理由を出す", async () => {
+    const url = "http://capture-fixtures-2-a.browserhive:8080/redirect-target";
+    const page = await open(
+      "truncated-document",
+      new URLSearchParams({ view: "replay", url, ts: "20261111141833" }).toString(),
+    );
+    const text = await waitFor(async () => {
+      const frame = page.frames().find((f) => f.url().includes("mp_/"));
+      if (!frame) return undefined;
+      const body = await frame.evaluate(() => document.body.innerText).catch(() => "");
+      return body.includes("did not keep") ? body : undefined;
+    }, "知らせの頁");
+    expect(text).toContain("WARC-Truncated: length");
+    expect(text).toContain("not part of the archived page");
+  });
+});
