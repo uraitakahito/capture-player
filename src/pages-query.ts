@@ -5,7 +5,7 @@
  * 版の置き場は一度書いたら書き換えない約束なので、新しさを確かめに行かない。置く数には上限を
  * 決め (LRU)、溢れたら長く使っていない物から捨てる。
  *
- * 答えの形・並び・誤りの status は docs/replay-bundle.md の「/q/ の約束」。
+ * 答えの形・並び・誤りの status は replayweb-server の docs/replay-bundle.md の「/q/ の約束」。
  */
 import type { IncomingMessage } from "node:http";
 import type { Upstream } from "./config.js";

@@ -1,6 +1,6 @@
 /**
  * 合本の pages.json (形 v1) を読み、頁の問いに答える。I/O を持たない部分。
- * 形と問いの約束は docs/replay-bundle.md。
+ * 形と問いの約束は replayweb-server の docs/replay-bundle.md（この server のコードは replayweb-server から写した）。
  *
  * ReplayWeb.page (wabac.js 2.27 の src/wacz/multiwacz.ts) がこの答えをどう読むか:
  *

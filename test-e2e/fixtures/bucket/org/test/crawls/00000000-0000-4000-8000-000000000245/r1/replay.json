@@ -1,0 +1,99 @@
+{
+  "title": "frames (CAPTURE-245)",
+  "resources": [
+    {
+      "name": "frameset.wacz",
+      "path": "/wacz/frames/frameset.wacz",
+      "hash": "sha256:b798c6a850cea68e9e2447d7138875dd6303e68a238d1c59ba17d507c9706d8e",
+      "crawlId": "00000000-0000-4000-8000-000000000245"
+    },
+    {
+      "name": "iframe.wacz",
+      "path": "/wacz/frames/iframe.wacz",
+      "hash": "sha256:b940e24309d4ddd4ce8caf011b077dbdba792abe10df78d0b2ebffc2aeca14c0",
+      "crawlId": "00000000-0000-4000-8000-000000000245"
+    },
+    {
+      "name": "leaf-1.wacz",
+      "path": "/wacz/frames/leaf-1.wacz",
+      "hash": "sha256:5150eda6b331796dc588fe8a043ef761650754a6edbb478e64f994db4b4fe8f0",
+      "crawlId": "00000000-0000-4000-8000-000000000245"
+    },
+    {
+      "name": "leaf-3.wacz",
+      "path": "/wacz/frames/leaf-3.wacz",
+      "hash": "sha256:fa6516534d7b3ef6e9850f1954a3e55eea346299d22257747317b6220bc204aa",
+      "crawlId": "00000000-0000-4000-8000-000000000245"
+    },
+    {
+      "name": "hub.wacz",
+      "path": "/wacz/frames/hub.wacz",
+      "hash": "sha256:efcebc529c940f56808a740681b906ce7e7594fdcf997a1b7f5b8521950518ea",
+      "crawlId": "00000000-0000-4000-8000-000000000245"
+    },
+    {
+      "name": "leaf-2.wacz",
+      "path": "/wacz/frames/leaf-2.wacz",
+      "hash": "sha256:04f06bb361f82f1cff02c38cdbbe1801a990ddb02486027afa25699ca5906503",
+      "crawlId": "00000000-0000-4000-8000-000000000245"
+    }
+  ],
+  "initialPages": [
+    {
+      "id": "9970b4fe-4474-4175-a8da-ff18bbb94624",
+      "url": "http://127.0.0.1:18185/links/frameset",
+      "ts": "2026-11-12T00:30:33.799Z",
+      "title": "frameset",
+      "filename": "frameset.wacz",
+      "isSeed": true,
+      "crawl_id": "00000000-0000-4000-8000-000000000245"
+    },
+    {
+      "id": "b38eadc5-5d62-4d6a-a888-9c3e4436fe36",
+      "url": "http://127.0.0.1:18185/links/iframe",
+      "ts": "2026-11-12T00:30:36.169Z",
+      "title": "iframe",
+      "filename": "iframe.wacz",
+      "isSeed": false,
+      "crawl_id": "00000000-0000-4000-8000-000000000245"
+    },
+    {
+      "id": "111b8a59-de31-4716-b392-100d124f49b0",
+      "url": "http://127.0.0.1:18185/links/leaf/1",
+      "ts": "2026-11-12T00:31:14.030Z",
+      "title": "leaf",
+      "filename": "leaf-1.wacz",
+      "isSeed": false,
+      "crawl_id": "00000000-0000-4000-8000-000000000245"
+    },
+    {
+      "id": "eaae6838-1338-428c-9e9a-32f8fa32f23c",
+      "url": "http://127.0.0.1:18185/links/leaf/3",
+      "ts": "2026-11-12T00:31:16.380Z",
+      "title": "leaf",
+      "filename": "leaf-3.wacz",
+      "isSeed": false,
+      "crawl_id": "00000000-0000-4000-8000-000000000245"
+    },
+    {
+      "id": "17120dde-52f5-4032-acbe-9d372add5c48",
+      "url": "http://127.0.0.1:18185/links/hub",
+      "ts": "2026-11-12T00:31:18.714Z",
+      "title": "hub",
+      "filename": "hub.wacz",
+      "isSeed": false,
+      "crawl_id": "00000000-0000-4000-8000-000000000245"
+    },
+    {
+      "id": "8465b85f-2586-4557-a0cf-f1464d57e476",
+      "url": "http://127.0.0.1:18185/links/leaf/2",
+      "ts": "2026-11-12T00:30:38.533Z",
+      "title": "leaf",
+      "filename": "leaf-2.wacz",
+      "isSeed": false,
+      "crawl_id": "00000000-0000-4000-8000-000000000245"
+    }
+  ],
+  "totalPages": 6,
+  "pagesQueryUrl": "/q/org/test/crawls/00000000-0000-4000-8000-000000000245/r1/pages"
+}

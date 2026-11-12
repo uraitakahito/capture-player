@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "crawlId": "00000000-0000-4000-8000-000000000245",
+  "rev": 1,
+  "pages": [
+    {
+      "id": "9970b4fe-4474-4175-a8da-ff18bbb94624",
+      "url": "http://127.0.0.1:18185/links/frameset",
+      "ts": "2026-11-12T00:30:33.799Z",
+      "title": "frameset",
+      "filename": "frameset.wacz",
+      "depth": 0,
+      "stage": null,
+      "keys": ["http://127.0.0.1:18185/links/frameset"]
+    },
+    {
+      "id": "9970b4fe-4474-4175-a8da-ff18bbb94624-after-load",
+      "url": "urn:browserhive:snapshot:after-load:http://127.0.0.1:18185/links/frameset",
+      "ts": "2026-11-12T00:30:35.953Z",
+      "title": "frameset",
+      "filename": "frameset.wacz",
+      "depth": 0,
+      "stage": "after-load",
+      "keys": []
+    },
+    {
+      "id": "b38eadc5-5d62-4d6a-a888-9c3e4436fe36",
+      "url": "http://127.0.0.1:18185/links/iframe",
+      "ts": "2026-11-12T00:30:36.169Z",
+      "title": "iframe",
+      "filename": "iframe.wacz",
+      "depth": 0,
+      "stage": null,
+      "keys": ["http://127.0.0.1:18185/links/iframe"]
+    },
+    {
+      "id": "b38eadc5-5d62-4d6a-a888-9c3e4436fe36-after-load",
+      "url": "urn:browserhive:snapshot:after-load:http://127.0.0.1:18185/links/iframe",
+      "ts": "2026-11-12T00:30:38.318Z",
+      "title": "iframe",
+      "filename": "iframe.wacz",
+      "depth": 0,
+      "stage": "after-load",
+      "keys": []
+    },
+    {
+      "id": "111b8a59-de31-4716-b392-100d124f49b0",
+      "url": "http://127.0.0.1:18185/links/leaf/1",
+      "ts": "2026-11-12T00:31:14.030Z",
+      "title": "leaf",
+      "filename": "leaf-1.wacz",
+      "depth": 1,
+      "stage": null,
+      "keys": ["http://127.0.0.1:18185/links/leaf/1"]
+    },
+    {
+      "id": "111b8a59-de31-4716-b392-100d124f49b0-after-load",
+      "url": "urn:browserhive:snapshot:after-load:http://127.0.0.1:18185/links/leaf/1",
+      "ts": "2026-11-12T00:31:16.162Z",
+      "title": "leaf",
+      "filename": "leaf-1.wacz",
+      "depth": 1,
+      "stage": "after-load",
+      "keys": []
+    },
+    {
+      "id": "eaae6838-1338-428c-9e9a-32f8fa32f23c",
+      "url": "http://127.0.0.1:18185/links/leaf/3",
+      "ts": "2026-11-12T00:31:16.380Z",
+      "title": "leaf",
+      "filename": "leaf-3.wacz",
+      "depth": 1,
+      "stage": null,
+      "keys": ["http://127.0.0.1:18185/links/leaf/3"]
+    },
+    {
+      "id": "eaae6838-1338-428c-9e9a-32f8fa32f23c-after-load",
+      "url": "urn:browserhive:snapshot:after-load:http://127.0.0.1:18185/links/leaf/3",
+      "ts": "2026-11-12T00:31:18.509Z",
+      "title": "leaf",
+      "filename": "leaf-3.wacz",
+      "depth": 1,
+      "stage": "after-load",
+      "keys": []
+    },
+    {
+      "id": "17120dde-52f5-4032-acbe-9d372add5c48",
+      "url": "http://127.0.0.1:18185/links/hub",
+      "ts": "2026-11-12T00:31:18.714Z",
+      "title": "hub",
+      "filename": "hub.wacz",
+      "depth": 1,
+      "stage": null,
+      "keys": ["http://127.0.0.1:18185/links/hub"]
+    },
+    {
+      "id": "17120dde-52f5-4032-acbe-9d372add5c48-after-load",
+      "url": "urn:browserhive:snapshot:after-load:http://127.0.0.1:18185/links/hub",
+      "ts": "2026-11-12T00:31:20.843Z",
+      "title": "hub",
+      "filename": "hub.wacz",
+      "depth": 1,
+      "stage": "after-load",
+      "keys": []
+    },
+    {
+      "id": "8465b85f-2586-4557-a0cf-f1464d57e476",
+      "url": "http://127.0.0.1:18185/links/leaf/2",
+      "ts": "2026-11-12T00:30:38.533Z",
+      "title": "leaf",
+      "filename": "leaf-2.wacz",
+      "depth": 1,
+      "stage": null,
+      "keys": ["http://127.0.0.1:18185/links/leaf/2"]
+    },
+    {
+      "id": "8465b85f-2586-4557-a0cf-f1464d57e476-after-load",
+      "url": "urn:browserhive:snapshot:after-load:http://127.0.0.1:18185/links/leaf/2",
+      "ts": "2026-11-12T00:30:40.662Z",
+      "title": "leaf",
+      "filename": "leaf-2.wacz",
+      "depth": 1,
+      "stage": "after-load",
+      "keys": []
+    }
+  ]
+}

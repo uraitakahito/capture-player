@@ -1229,8 +1229,11 @@ export class MultiWACZ
       }
     }
 
+    // capture-player: 2026-11-12 に改変。<frame> の中の遷移（destination が "frame"）も、iframe と同じく頁の遷移と見る（CAPTURE-245）。
     const isPage =
-      request.destination === "document" || request.destination === "iframe";
+      request.destination === "document" ||
+      request.destination === "iframe" ||
+      request.destination === "frame";
 
     const hash = pageId;
     let waczname: string | null = null;
@@ -1413,9 +1416,12 @@ export class MultiWACZ
     let pageUrl;
 
     // if top-level doc, and has page query, query for which WACZ files should be tried
+    // capture-player: 2026-11-12 に改変。<frame> の中の遷移（destination が "frame"）も、iframe と同じく頁の遷移と見る（CAPTURE-245）。
     if (
       this.pagesQueryUrl &&
-      (request.destination === "document" || request.destination === "iframe")
+      (request.destination === "document" ||
+        request.destination === "iframe" ||
+        request.destination === "frame")
     ) {
       pageUrl = request.url;
       // thumbnail or other custom resource for page, lookup corresponding page url

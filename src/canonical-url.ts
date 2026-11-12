@@ -1,5 +1,5 @@
 /**
- * 合本の URL の正規化 (docs/replay-bundle.md の「正規化」)。
+ * 合本の URL の正規化 (replayweb-server の docs/replay-bundle.md の「正規化」)。
  *
  * WHATWG の URL として読み、scheme が http か https でなければ null。fragment を外して直列化する。
  * capture-ledger の parseHttpUrl (src/crawl/scope.ts) と同じ式で、両方の repo が

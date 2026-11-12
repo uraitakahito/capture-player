@@ -267,9 +267,12 @@ export class Collection {
     // capture-player: 2026-11-12 に改変。本文を残さなかった文書（WARC-Truncated）は、白い頁の代わりに、
     // ビューアが出したと分かる知らせの頁を返す。画像などの部分の応答は今のまま。
     const truncated = response.headers.get(TRUNCATED_HEADER);
+    // capture-player: 2026-11-12 に改変。<frame> の文書にも同じ知らせを出す（CAPTURE-245）。
     if (
       truncated &&
-      (request.destination === "document" || request.destination === "iframe")
+      (request.destination === "document" ||
+        request.destination === "iframe" ||
+        request.destination === "frame")
     ) {
       return truncatedNoticeResponse(requestURL, requestTS, truncated);
     }
@@ -309,8 +312,11 @@ export class Collection {
         response.headers.set("Content-Disposition", `attachment; ${value}`);
       }
     } else {
+      // capture-player: 2026-11-12 に改変。<frame> の文書も iframe と同じに扱う（CAPTURE-245）。
       deleteDisposition =
-        request.destination === "iframe" || request.destination === "document";
+        request.destination === "iframe" ||
+        request.destination === "frame" ||
+        request.destination === "document";
     }
     return response.makeResponse(this.coHeaders, deleteDisposition);
   }

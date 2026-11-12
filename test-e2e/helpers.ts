@@ -34,13 +34,19 @@ export const chromePath = (): string => {
   return existsSync(mac) ? mac : join(base, dir, "chrome-linux64", "chrome");
 };
 
-/** build したビューア（public/）を配る capture-player の server。保管庫は使わない（WACZ は別の配信から読む） */
-export const startViewer = async (): Promise<{ viewer: RunningViewer; origin: string }> => {
+/**
+ * build したビューア（public/）を配る capture-player の server。既定では保管庫を使わない（WACZ は別の配信から
+ * 読む）。`bucket` を渡すと、それを保管庫として `/wacz/` と `/q/` を通す（合本を試すとき。見本の配信の
+ * `/bucket` を渡す）。
+ */
+export const startViewer = async (
+  bucket = "http://127.0.0.1:9/unused",
+): Promise<{ viewer: RunningViewer; origin: string }> => {
   if (!existsSync(join(ROOT, "public", "sw.js")))
     throw new Error("public/ が無い。先に pnpm run build:viewer");
   const viewer = await run(
     {
-      env: { S3_BUCKET_URL: "http://127.0.0.1:9/unused" },
+      env: { S3_BUCKET_URL: bucket },
       stdout: { write: () => true },
       stderr: { write: (t: string) => process.stderr.write(t) },
       // shutdown は exit(0) を呼ぶ。0 以外は起動の失敗
@@ -61,7 +67,10 @@ export const startViewer = async (): Promise<{ viewer: RunningViewer; origin: st
   return { viewer, origin: `http://127.0.0.1:${String(viewer.addresses.plain.port)}` };
 };
 
-/** test-e2e/fixtures を CORS と Range つきで配る（ビューアは別の origin の WACZ を ?source= で読む） */
+/**
+ * test-e2e/fixtures を CORS と Range つきで配る（ビューアは別の origin の WACZ を ?source= で読む）。
+ * `bucket/` の下は、保管庫の代わりに鍵の path のまま配る（合本の WACZ・replay.json・pages.json）。
+ */
 export const startFixtures = async (): Promise<{ server: Server; base: string }> => {
   const server = createServer((req, res) => {
     const headers: Record<string, string> = {
@@ -76,7 +85,13 @@ export const startFixtures = async (): Promise<{ server: Server; base: string }>
     }
     const name = new URL(req.url ?? "/", "http://x").pathname.slice(1);
     const file = join(FIXTURES, name);
-    if (!/^[a-z-]+\.wacz$/.test(name) || !existsSync(file)) {
+    const inBucket =
+      /^bucket\/[A-Za-z0-9_.-]+(\/[A-Za-z0-9_.-]+)*$/.test(name) && !name.includes("..");
+    if (
+      (!/^[a-z-]+\.wacz$/.test(name) && !inBucket) ||
+      !existsSync(file) ||
+      !statSync(file).isFile()
+    ) {
       res.writeHead(404, headers).end();
       return;
     }
@@ -94,7 +109,8 @@ export const startFixtures = async (): Promise<{ server: Server; base: string }>
       else createReadStream(file, { start, end }).pipe(res);
       return;
     }
-    res.writeHead(200, { ...headers, "content-length": String(size) });
+    const type = name.endsWith(".json") ? { "content-type": "application/json" } : {};
+    res.writeHead(200, { ...headers, ...type, "content-length": String(size) });
     if (req.method === "HEAD") res.end();
     else createReadStream(file).pipe(res);
   });
