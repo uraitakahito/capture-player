@@ -53,7 +53,11 @@ const openPage = async (path: string): Promise<Page> => {
 
 const frameAt = (page: Page, path: string): Promise<Frame> =>
   waitFor(
-    () => Promise.resolve(page.frames().find((f) => new URL(f.url()).pathname.endsWith(path))),
+    // 作りたての枠は URL が空のことがある（CI の Chrome で見た）。読めない URL は飛ばす。
+    () =>
+      Promise.resolve(
+        page.frames().find((f) => (URL.parse(f.url())?.pathname ?? "").endsWith(path)),
+      ),
     `${path} の枠`,
   );
 
