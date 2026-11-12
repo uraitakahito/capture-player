@@ -1,7 +1,7 @@
 /**
  * 保管庫の鍵を URL の path から読み、上流へ渡す path に組み直す (`/wacz/<鍵>` と `/q/<置き場>`)。
  *
- * 決まり (docs/replay-bundle.md の「/wacz/ の鍵の綴り」):
+ * 決まり (replayweb-server の docs/replay-bundle.md の「/wacz/ の鍵の綴り」):
  *
  *   1. path を `/` で区切り、区切りごとに 1 度だけ百分率の符号を解く。
  *   2. 解いた区切り (`%2F` から出た `/` の両側も) が `.` か `..` なら断る。

@@ -214,10 +214,12 @@ export class Rewriter {
   }
 
   isGuessHtml(request: ArchiveRequest, response: ArchiveResponse) {
+    // capture-player: 2026-11-12 に改変。<frame> の文書も iframe と同じに HTML と推す（CAPTURE-245）。
     if (
       request.destination &&
       request.destination !== "document" &&
-      request.destination !== "iframe"
+      request.destination !== "iframe" &&
+      request.destination !== "frame"
     ) {
       return false;
     }
