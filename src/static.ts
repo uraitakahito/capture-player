@@ -1,6 +1,7 @@
 /**
- * ReplayWeb.page の 3 つのファイルと、image が焼いた 3 つ (/__version・/SOURCE.txt・
- * /LICENSE) を配る。ほかの path は配らない (呼び手が 404 にする)。
+ * capture-player のビューア (upstream/ の改変した ReplayWeb.page と wabac.js から build した
+ * index.html・ui.js・sw.js) と、同じ build が置く /__version・/SOURCE.txt・/LICENSE を配る。
+ * ほかの path は配らない (呼び手が 404 にする)。
  *
  * - 起動の時に全部を読んで手元に置く (合わせて数 MB)。足りない物があれば起動しない —— image が
  *   壊れているので、頁が出ないまま黙って起きるより早く分かる。
@@ -8,8 +9,8 @@
  *   charset を付けなかったので、一覧の「Date ▲」が化けていた。
  * - ETag と Last-Modified を付け、条件つきの要求には 304 で答える。Service Worker は頁を開く
  *   たびに sw.js (1 MB 余り) が変わったかを訊く。
- * - /ruffle/ruffle.js・/webmanifest.json・/favicons/* は app が求めるが、配らない (404)。ruffle を
- *   入れないのがこの image の目的の 1 つ (README)。
+ * - /ruffle/ruffle.js・/webmanifest.json・/favicons/* は app が求めるが、配らない (404)。
+ *   scripts/build-viewer.sh が置き場に揃えるのは上の物だけで、ruffle は image に入らない。
  */
 import { createHash } from "node:crypto";
 import { readFileSync, statSync } from "node:fs";

@@ -11,8 +11,6 @@ the unmodified ReplayWeb.page. Web Capture links to both: replayweb-server check
 that an archive replays in ReplayWeb.page as it is, and capture-player shows what
 BrowserHive adds on top of WACZ.
 
-Work in progress (Jira CAPTURE-102).
-
 ## What it changes
 
 Everything that differs from upstream is listed in [NOTICE.md](NOTICE.md). In short:
