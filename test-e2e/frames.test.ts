@@ -1,8 +1,9 @@
 // 合本の <frame> の中の遷移（CAPTURE-245）。見本は test-e2e/fixtures/README.md の「合本」。
 //
 // 上流の wabac.js は、頁の遷移を destination が document か iframe のときだけと見る。<frame> の中の
-// リンクを押すと destination は frame で、頁の問い（pagesQueryUrl）を使わず、起点と先頭の 3 本の WACZ しか
-// 探さない。見本の合本は、押す先（leaf-2）を 6 番目に置いてあるので、直しが無いと Not Found になる。
+// リンクを押すと destination は frame で、頁の問い（pagesQueryUrl）を使わず、WACZ の名前の順で先頭の 3 本しか
+// 探さない（見本の README の「並びが要」）。見本の合本の押す先（leaf-2）は名前の順で 5 番目なので、直しが無いと
+// Not Found になる。
 // 同じ頁を <iframe> の中から押すと、直しが無くても見つかる（対照）。
 import { readFileSync } from "node:fs";
 import type { Server } from "node:http";
