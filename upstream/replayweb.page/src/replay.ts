@@ -772,8 +772,11 @@ class Replay extends LitElement {
         border: 0px;
       }
 
-      /* capture-player: 2026-11-14 に足した（CAPTURE-422）。撮った時の窓の 1 行と、枠の入れ物 */
+      /* capture-player: 2026-11-14 に足した（CAPTURE-422）。撮った時の窓の 1 行と、枠の入れ物。
+         1 行は明るい地で描く。:host が color-scheme: light dark なので、ダークモードではボタンの字の既定の色が
+         白になる（地も白で、字が見えなかった）。地と字の色を両方決め、color-scheme も light にする */
       .capture-bar {
+        color-scheme: light;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
@@ -789,6 +792,7 @@ class Replay extends LitElement {
         background: #fdf1dc;
       }
       .capture-bar button {
+        color: #1f2330;
         font-size: 12px;
         padding: 0 8px;
         border: 1px solid #b9bfd0;
