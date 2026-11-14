@@ -1,5 +1,6 @@
 /**
- * 起動の設定を環境変数から読む。nginx の entrypoint.sh が見ていたことを、同じ順と同じ文言で見る。
+ * 起動の設定を環境変数から読む。写し元の replayweb-server が nginx だった頃の entrypoint.sh が
+ * 見ていたことを、同じ順と同じ文言で見る (この repo は初めから Node の server で、entrypoint.sh は無い)。
  *
  * 文言は変えない。消費者の compose のコメントに写されている (BrowserHive と capture-ledger の
  * docker-compose.yml が `S3_BUCKET_URL must be http(s)://…, got: …` を引いている)。
@@ -43,8 +44,8 @@ const BUCKET_URL_GLOB = /^https?:\/\/[\s\S]*\/[\s\S]+$/;
 /**
  * S3_BUCKET_URL を読む。glob に合い、かつ URL として host と bucket を持つときだけ通す。
  *
- * glob だけだと `http:///x` (host が空) や `http://h/b?x` (query) も通り、nginx はそれで起きて
- * 要求の時に壊れていた。断るときの文言は同じ (`http(s)://<host>[:<port>]/<bucket>` の形の外)。
+ * glob だけだと `http:///x` (host が空) や `http://h/b?x` (query) も通り、replayweb-server の nginx は
+ * それで起きて要求の時に壊れていた。断るときの文言は同じ (`http(s)://<host>[:<port>]/<bucket>` の形の外)。
  */
 export const parseBucketUrl = (value: string): Upstream => {
   const refused = new StartupError(
