@@ -236,7 +236,7 @@ class ItemInfo extends LitElement {
     </div>`;
   }
 
-  // capture-player: 2026-11-12 に改変。BrowserHive の WACZ の欄（datapackage の browserhive:capture）の要約を出す。
+  // capture-player: 2026-11-12 に改変。BrowserHive WACZ の欄（datapackage.json の browserhive:capture）の要約を出す。
   // 上流の Archive Info は、この欄を読まない。
   renderBrowserHive() {
     const bh = this.item?.browserhive;
@@ -274,7 +274,7 @@ class ItemInfo extends LitElement {
           </p>`
         : nothing}
       ${bh.profile
-        ? html`<p><a href="${bh.profile}" target="_blank">Profile</a></p>`
+        ? html`<p><a href="${bh.profile}" target="_blank">BrowserHive WACZ Profile</a></p>`
         : nothing}
       <p>
         Pages replay with their own JavaScript. A page can still send WebRTC

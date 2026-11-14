@@ -505,7 +505,7 @@ customElements.define("wr-page-entry", PageEntry);
 
 export { PageEntry };
 
-// capture-player: 2026-11-12 に足した。BrowserHive の WARC Profile の写しの URI から、時点と元の文書の URL を読む。
+// capture-player: 2026-11-12 に足した。BrowserHive WARC Profile の写しの URI（urn:browserhive:snapshot:）から、時点と元の文書の URL を読む。
 const SNAPSHOT_URN = /^urn:browserhive:snapshot:([a-z-]+):(.+)$/;
 const STAGE_LABELS: Record<string, string> = {
   "after-load": "Snapshot after load",

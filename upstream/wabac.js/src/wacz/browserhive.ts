@@ -1,4 +1,4 @@
-// capture-player: 2026-11-12 に足した。BrowserHive の WACZ Profile の datapackage の欄 `browserhive:capture` を、
+// capture-player: 2026-11-12 に足した。BrowserHive WACZ Profile の datapackage.json の欄 `browserhive:capture` を、
 // Archive Info に出す小さな要約にする。URL の一覧や証明書は大きくなりうるので、数と最初の数件だけを持つ。
 
 export type BrowserHiveSummary = {
