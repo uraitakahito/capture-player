@@ -42,6 +42,11 @@ import {
   chooseDocumentDpr,
   getCaptureEnv,
 } from "./capturePlayerEnv";
+// capture-player: 2026-11-15 に足した（CAPTURE-147）
+import {
+  isBrowserHiveSnapshot,
+  SCRIPT_MARKS_INSERT,
+} from "./capturePlayerSnapshot";
 
 export type Prefixes = {
   static: string;
@@ -352,6 +357,11 @@ export class Collection {
     let randomInsert = "";
     // capture-player: 2026-11-14 に足した（CAPTURE-422）。撮った時の DPR と、画面へ環境を知らせる断片（記録が無ければ null）
     let capture: { pixelRatio: number; insert: string } | null = null;
+    // capture-player: 2026-11-15 に足した（CAPTURE-147）。BrowserHive の写しの文書（主・子とも）にだけ、
+    // スクリプトが足した要素（[data-capture-script]）を数えて画面へ送る断片
+    const snapshotInsert = isBrowserHiveSnapshot(response.url)
+      ? SCRIPT_MARKS_INSERT
+      : "";
 
     const headInsertFunc = (url: string) => {
       const topUrl = basePrefixTS + (requestTS ? "/" : "") + url;
@@ -365,6 +375,7 @@ export class Collection {
         request.referrer,
         randomInsert,
         capture,
+        snapshotInsert,
       );
     };
 
@@ -773,6 +784,8 @@ window.home = "${this.rootPrefix}";
     randomInsert = "",
     // capture-player: 2026-11-14 に足した（CAPTURE-422）。null なら挿し込みは改変前と同じ
     capture: { pixelRatio: number; insert: string } | null = null,
+    // capture-player: 2026-11-15 に足した（CAPTURE-147）。空なら挿し込みは改変前と同じ
+    snapshotInsert = "",
   ) {
     const coll = this.name;
 
@@ -879,7 +892,7 @@ ${this.injectRelCanon ? `<link rel="canonical" href="${url}"/>` : ""}
   }
     ${disableMSE ? DISABLE_MEDIASOURCE_SCRIPT : ""}
 </script>
-${randomInsert}${capture ? capture.insert : ""}${this.injectScripts.map((script) => `<script src='${this.proxyPrefix}${script}'> </script>`).join("")}
+${randomInsert}${capture ? capture.insert : ""}${snapshotInsert}${this.injectScripts.map((script) => `<script src='${this.proxyPrefix}${script}'> </script>`).join("")}
 <!-- End WB Insert -->
 `;
   }

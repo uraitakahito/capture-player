@@ -1,0 +1,69 @@
+{
+  "title": "frame snapshots (CAPTURE-147)",
+  "resources": [
+    {
+      "name": "frameset.wacz",
+      "path": "/wacz/frame-snapshots/frameset.wacz",
+      "hash": "sha256:f0281af9135997ab633f6736f54e1a983c21accbea48b3986af21979b78abea9",
+      "crawlId": "00000000-0000-4000-8000-000000000147"
+    },
+    {
+      "name": "iframe.wacz",
+      "path": "/wacz/frame-snapshots/iframe.wacz",
+      "hash": "sha256:ffb7dd078af0f7edb571619d9e9dc682dee6a5f7dc19f9d80393d15d50eedd5a",
+      "crawlId": "00000000-0000-4000-8000-000000000147"
+    },
+    {
+      "name": "nested.wacz",
+      "path": "/wacz/frame-snapshots/nested.wacz",
+      "hash": "sha256:c2e9e99b2dd357b3f9d17c55762d1c82c6656eea0064c0da41e5c31c427d2693",
+      "crawlId": "00000000-0000-4000-8000-000000000147"
+    },
+    {
+      "name": "portrait.wacz",
+      "path": "/wacz/frame-snapshots/portrait.wacz",
+      "hash": "sha256:fde6386fbd9880326c7819a44ac5e96f325f535d13bbe97641d27916ce50bbba",
+      "crawlId": "00000000-0000-4000-8000-000000000147"
+    }
+  ],
+  "initialPages": [
+    {
+      "id": "83a22eec-1385-439d-b6b4-2d999933c3c9",
+      "url": "http://127.0.0.1:19471/links/frameset",
+      "ts": "2026-11-14T20:51:36.372Z",
+      "title": "frameset",
+      "filename": "frameset.wacz",
+      "isSeed": true,
+      "crawl_id": "00000000-0000-4000-8000-000000000147"
+    },
+    {
+      "id": "74418c41-e08c-408b-a9f9-084fdaca445d",
+      "url": "http://127.0.0.1:19471/links/iframe",
+      "ts": "2026-11-14T20:51:39.899Z",
+      "title": "iframe",
+      "filename": "iframe.wacz",
+      "isSeed": true,
+      "crawl_id": "00000000-0000-4000-8000-000000000147"
+    },
+    {
+      "id": "c3e412d8-e273-4466-ab69-41781fc794a2",
+      "url": "http://127.0.0.1:19471/links/frameset-nested",
+      "ts": "2026-11-14T20:47:05.497Z",
+      "title": "frameset-nested",
+      "filename": "nested.wacz",
+      "isSeed": true,
+      "crawl_id": "00000000-0000-4000-8000-000000000147"
+    },
+    {
+      "id": "9eea45f0-3f1f-4131-873e-8f5bc469fab3",
+      "url": "http://127.0.0.1:19471/portrait/",
+      "ts": "2026-11-14T20:47:01.989Z",
+      "title": "肖像のホームページ",
+      "filename": "portrait.wacz",
+      "isSeed": true,
+      "crawl_id": "00000000-0000-4000-8000-000000000147"
+    }
+  ],
+  "totalPages": 12,
+  "pagesQueryUrl": "/q/org/test/crawls/00000000-0000-4000-8000-000000000147/r1/pages"
+}

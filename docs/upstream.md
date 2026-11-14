@@ -27,6 +27,13 @@ replayweb-server では撮った時と違う物を選び直し、capture-player 
 在るのは節目のスクリーンショット（`urn:browserhive:screenshot:<時点>:<文書の URL>`）です。replayweb-server（手元の dev の一式では
 8899 番）の一覧には絵が出ず、capture-player（8897 番）では文書の行に after-load の絵、写しの行に同じ時点の絵が出ます。
 
+写しの枠も違います（CAPTURE-147）。BrowserHive v31.2.0 からの写し（`urn:browserhive:snapshot:`）の中の `<frame>`・`<iframe>` は、
+`src` を元のまま残し、子フレームの写しの URI（`urn:browserhive:frame-snapshot:`）を `data-browserhive-snapshot` に持ちます
+（[BrowserHive WARC Profile 1.5.0](https://uraitakahito.github.io/browserhive-warc-spec/1.5.0/#frame-snapshot-references)）。
+replayweb-server は属性を読まず、枠に記録した元の文書（読み込んだ時の物）を出します。capture-player は枠を子の写しで開くので、
+スクリプトが枠の中に足した物は capture-player にだけ出ます。写しにスクリプトが足した要素（`data-capture-script`）が在れば、
+capture-player の再生の帯に「Script-added elements: N」と出ます。
+
 ## 上流の `static/wombat*.js` は配っていない
 
 `upstream/wabac.js/static/wombat.js` と `wombatWorkers.js` は、上流の wabac.js の repo に在る、前に build した写しです

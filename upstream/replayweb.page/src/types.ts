@@ -105,6 +105,13 @@ export type RandomCounts = {
   fallback: number;
 };
 
+// capture-player: 2026-11-15 に足した（CAPTURE-147）。BrowserHive の写しの文書が数えた、スクリプトが足した要素
+// （[data-capture-script]）の数。再生の中の文書（枠の中の子の写しも）の数を足した物。byId は属性の値ごと
+export type ScriptMarks = {
+  count: number;
+  byId: Map<string, number>;
+};
+
 // capture-player: 2026-11-14 に足した（CAPTURE-422）。再生する文書の撮った時の窓（CSS の px）と DPR。
 // dpr はその文書の値、dprs は取り込みが読み込んだ DPR の全部（順のまま）
 export type CaptureEnvInfo = {
