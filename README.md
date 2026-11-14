@@ -1,6 +1,7 @@
 # capture-player
 
-The Web Capture viewer for WACZ files made by BrowserHive.
+The Web Capture viewer for BrowserHive WACZ files: WACZ files that conform to the
+[BrowserHive WACZ Profile](https://uraitakahito.github.io/browserhive-specs/wacz-profile/1.25.0/).
 
 capture-player is a **modified version** of
 [ReplayWeb.page](https://github.com/webrecorder/replayweb.page) 2.5.0 and
@@ -8,8 +9,8 @@ capture-player is a **modified version** of
 served the same way as
 [replayweb-server](https://github.com/uraitakahito/replayweb-server), which serves
 the unmodified ReplayWeb.page. Web Capture links to both: replayweb-server checks
-that an archive replays in ReplayWeb.page as it is, and capture-player shows what
-BrowserHive adds on top of WACZ.
+that an archive replays in ReplayWeb.page as it is, and capture-player shows what a
+BrowserHive WACZ adds on top of WACZ 1.1.1.
 
 ## What it changes
 

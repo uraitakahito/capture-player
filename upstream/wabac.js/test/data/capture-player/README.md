@@ -2,7 +2,7 @@
 
 capture-player: 2026-11-12 に足した。
 
-`signature-*.json` は、BrowserHive の WACZ の `datapackage.json` の hash に、wacz-signer v0.9.0 の CLI
+`signature-*.json` は、BrowserHive WACZ の `datapackage.json` の hash に、wacz-signer v0.9.0 の CLI
 （`init --domain signer.example.invalid` → `sign --file <絶対パス>`、TSA なし）で署名した `datapackage-digest.json`。
 
 - `signature-der.json` — wacz-signer が出した DER（ASN.1・71 バイト）の署名のまま
