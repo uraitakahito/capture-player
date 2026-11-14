@@ -25,22 +25,21 @@
 
 ## 乱数の控え（`random-*.wacz`・CAPTURE-378）
 
-`random.test.ts` が使う。**BrowserHive で撮った物ではなく、手で組んだ代役。** BrowserHive の e2e が撮った本物
-（BrowserHive WACZ Profile 1.26.0 の `random/values.jsonl`）ができたら差し替える。組み直すのは
-`node test-e2e/fixtures/build-random.ts`（Node 26。何度流しても同じバイト列）。
+`random.test.ts` が使う。4 本は BrowserHive の e2e が dev の一式（capture-fixtures の `/random/*`）で撮った本物
+（BrowserHive v31.1.0 の build `ef8bf97e`・`datapackage.json` の `software` は `browserhive/31.0.0+5.gef8bf97e`・
+WACZ Profile 1.26.0）。2026-11-14 に保管庫から写した（撮ったのは 08:47 UTC 頃）。頁は
+`http://capture-fixtures-1-a.browserhive:8080/random/...`。残りの 2 本は `random-pick.wacz` から
+`node test-e2e/fixtures/derive-random.ts` で作る（変えないエントリは圧縮したバイト列をそのまま写す。何度流しても
+同じバイト列）。
 
-どれも `https://fixtures.test/random/pick` の頁を 1 つ持つ。頁は `pick.js` を読み、`pick.js` は `Math.random` を 1 回
-引いて 0 … 999999 の数 n の絵（`/random/img/<n>.svg`）を足し、題を `pick <n>` にする（capture-fixtures の
-`/random/pick` と同じ形）。撮った時刻は 2026-11-14T02:10:00.757Z（2 つ目は 02:20:00.311Z）。控えが無いとき
-wombat の固定の種の `Math.random`（種は文書の時刻の秒）が出す数は、02:10:00 で 720066、02:20:00 で 642391。
-控えの数は、これと違う物を選んである。
+| ファイル               | 元                                                                                                                                                                                         | 何を見るか                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| `random-pick.wacz`     | `e2e-146.wacz`（`/random/pick`。document の行 1 つ・`pick.js` の `Math.random` の draw 1 つ・値 0.9604632342795921）                                                                       | 960463 を選び、その絵が出る。再生の帯に印                         |
+| `random-frame.wacz`    | `e2e-150.wacz`（`/random/frame` と、同じサイトの iframe の `/random/pick`。draw は frame の文書（`document` 1・`frame: "frame"`）の物・値 0.70543710049348）                               | iframe の中で 705437。帯の数に入る                                |
+| `random-twice.wacz`    | `e2e-153.wacz`（`devicePixelRatios` [1, 2] で `/random/pick` を 2 度読んだ物。document の行 2 つ（dpr 1・2、record と date が別）・値 0.3193780804432035 と 0.8710058479768352）           | 2 つ目の文書の時刻（`20261114084739`）で 871005、1 つ目で 319378  |
+| `random-bytes.wacz`    | `e2e-148.wacz`（`/random/bytes`。`crypto.getRandomValues` の draw 1 つ・`bytes` 4・値 `AOvwqQ==`）                                                                                         | 4 バイトを `Uint32Array` で読んだ数の下 6 桁 138304               |
+| `random-none.wacz`     | `random-pick.wacz` から `random/values.jsonl`・`random/recorder.js` と、その `resources` の行と、`browserhive:capture.random` を抜いた物。`datapackage-digest.json` の hash は合わなくなる | 今までどおり wombat の固定の種の 712229。挿し込みに script が無い |
+| `random-tampered.wacz` | `random-pick.wacz` の `random/values.jsonl` の値の最後の 1 字を変えた物（0.9604632342795921 → …922。JSON のまま、n は同じ）。`resources` の hash はそのまま                                | hash が合わないので使わない（712229）                             |
 
-| ファイル               | 中身                                                                                                                                     | 何を見るか                                    |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `random-pick.wacz`     | 控えの値 0.123456789（n = 123456）と、その絵                                                                                             | 控えの値を返し、絵が出る。再生の帯に印が出る  |
-| `random-none.wacz`     | `random/` を持たない（`random.recorded` は false）                                                                                       | 今までどおり 720066。挿し込みに script が無い |
-| `random-twice.wacz`    | 同じ URL を 2 度撮った物（2 つの記録・2 つの document の行。値は 0.2500001 と 0.8750002）                                                | 02:20:00 で開くと、近い方の行の 875000        |
-| `random-tampered.wacz` | 控えの値 0.3333333 の行の hash を `datapackage.json` に載せたあとで、値の最後の 1 字を変えて 0.3333334 にした物（JSON のまま、n は同じ） | hash が合わないので使わない（720066）         |
-
-`random/recorder.js` は中身の無い代役（読み手は走らせない）。`datapackage.json` の `browserhive:capture` は
-`conformsTo` と `random` だけを持つ。
+控えが無いときに wombat の固定の種（種は文書の記録の時刻の秒）が出す数は、`random.test.ts` の「見本の前提」が
+計算し、控えから決まる数と違うことを確かめる。

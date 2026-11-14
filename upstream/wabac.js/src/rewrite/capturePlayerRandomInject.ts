@@ -3,7 +3,8 @@
 //
 // 同じスクリプトが同じ関数を n 回目（1 から）に呼んだら、控えのその呼び手のその関数の n 番目の値を返す
 // （BrowserHive WACZ Profile 1.26.0 の #random-reading）。値が無い・合わない呼び出しには、wombat が返すはずだった
-// 値（固定の種の Math.random）を返し、返した数とは別に数える。数は、再生の一番上の文書だけが UI へ送る。
+// 値（固定の種の Math.random）を返し、返した数とは別に数える。数は文書ごとに UI へ送る（frame の中の文書も。
+// UI が足す）。
 import { callerFromStack, originalFromReplayUrl, type RandomValue } from "../capturePlayerRandom";
 
 type RandomData = {
@@ -45,7 +46,6 @@ type PageWindow = {
   addEventListener: (name: string, f: () => void) => void;
   document: { readyState: string };
   __WB_top_frame?: { postMessage: (m: unknown, origin: string) => void };
-  __WB_replay_top?: unknown;
 };
 
 (function () {
@@ -190,13 +190,14 @@ type PageWindow = {
     }
   }
 
-  // UI へ数を送る。wombat の sendTopMessage と同じく、再生の一番上の文書だけ。load の後と、その後の変化は間引いて
+  // UI へ数を送る。wombat の sendTopMessage と同じ先（再生の外の UI の窓）へ、frame の中の文書からも送る。
+  // load の後と、その後の変化は間引いて
   let loaded = false;
   let pending = false;
   const send = () => {
     pending = false;
     const top = win.__WB_top_frame;
-    if (!top || win.__WB_replay_top !== win) {
+    if (!top) {
       return;
     }
     top.postMessage(

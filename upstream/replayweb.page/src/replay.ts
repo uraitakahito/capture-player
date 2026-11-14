@@ -86,10 +86,13 @@ class Replay extends LitElement {
 
   private hiliter: HoverHiliter | null = null;
 
-  // capture-player: 2026-11-14 に足した（CAPTURE-378）。再生の一番上の文書が送る、乱数の控えから返した数と、
-  // それを送った文書。文書が替わったら捨てる
-  private randomCounts: RandomCounts | null = null;
-  private randomDoc: Document | null = null;
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。再生の中の文書（frame の中も）が送る、乱数の控えから
+  // 返した数を、送った窓ごとに、送った文書と一緒に持つ。文書が替わった窓の数は捨てる。帯に出すのは足した数
+  private readonly randomByWindow = new Map<
+    Window,
+    { counts: RandomCounts; doc: Document | null }
+  >();
+  private randomSum: RandomCounts | null = null;
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
@@ -183,7 +186,8 @@ class Replay extends LitElement {
     if (this.iframeUrl && changedProperties.has("iframeUrl")) {
       this.waitForLoad();
       // capture-player: 2026-11-14 に足した（CAPTURE-378）。別の頁を開いたら、前の文書の数を捨てる
-      this.setRandomCounts(null, null);
+      this.randomByWindow.clear();
+      this.publishRandom();
 
       const detail = { title: "Archived Page", replayTitle: false };
       this.dispatchEvent(
@@ -249,6 +253,16 @@ class Replay extends LitElement {
   onReplayMessage(event: MessageEvent) {
     const iframe = this.renderRoot.querySelector("iframe");
 
+    // capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の控えの数は、再生の中の frame の文書からも届く。
+    // UI で使い、親の窓へは渡さない
+    if (iframe && event.data?.wb_type === "bh-random") {
+      const source = event.source as Window | null;
+      if (source && this.isInReplay(source, iframe)) {
+        this.onRandomCounts(source, event.data);
+      }
+      return;
+    }
+
     if (iframe && event.source === iframe.contentWindow) {
       if (
         event.data.wb_type === "load" ||
@@ -261,13 +275,8 @@ class Replay extends LitElement {
         this.title = event.data.title || this.title;
         this.replayNotFoundError = event.data.wb_type === "archive-not-found";
         this.clearLoading(iframe);
-        // capture-player: 2026-11-14 に足した（CAPTURE-378）。文書が替わったら、前の文書の数を捨てる
-        if (
-          this.randomCounts &&
-          this.randomDoc !== this.iframeDocument(iframe)
-        ) {
-          this.setRandomCounts(null, null);
-        }
+        // capture-player: 2026-11-14 に足した（CAPTURE-378）。文書が替わった窓の数を捨てる
+        this.pruneRandom();
 
         if (event.data.icons) {
           const icons = event.data.icons;
@@ -281,19 +290,6 @@ class Replay extends LitElement {
         }
       } else if (event.data.wb_type === "title") {
         this.title = event.data.title;
-        // capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の控えの数は UI で使い、親の窓へは渡さない
-      } else if (event.data.wb_type === "bh-random") {
-        const { returned, fallback, recorded } = event.data;
-        if (
-          typeof returned === "number" &&
-          typeof fallback === "number" &&
-          typeof recorded === "number"
-        ) {
-          this.setRandomCounts(
-            { returned, fallback, recorded },
-            this.iframeDocument(iframe),
-          );
-        }
       } else {
         const passEvent = { type: event.data.wb_type, ...event.data };
         delete passEvent.wb_type;
@@ -302,27 +298,84 @@ class Replay extends LitElement {
     }
   }
 
-  // capture-player: 2026-11-14 に足した（CAPTURE-378）
-  private iframeDocument(iframe: HTMLIFrameElement): Document | null {
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。win が再生の iframe の窓か、その中の frame の窓か
+  private isInReplay(win: Window, iframe: HTMLIFrameElement): boolean {
     try {
-      return iframe.contentDocument;
+      for (
+        let w: Window | null = win;
+        w;
+        w = w.parent === w ? null : w.parent
+      ) {
+        if (w === iframe.contentWindow) {
+          return true;
+        }
+      }
+    } catch (_) {
+      // 読めない窓は再生の中ではない
+    }
+    return false;
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）
+  private windowDocument(win: Window): Document | null {
+    try {
+      return win.closed ? null : win.document;
     } catch (_) {
       return null;
     }
   }
 
-  // capture-player: 2026-11-14 に足した（CAPTURE-378）。item.ts の再生の帯が数を出す
-  private setRandomCounts(counts: RandomCounts | null, doc: Document | null) {
-    if (!counts && !this.randomCounts) {
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）
+  private onRandomCounts(win: Window, data: Record<string, unknown>) {
+    const { returned, fallback, recorded } = data;
+    if (
+      typeof returned !== "number" ||
+      typeof fallback !== "number" ||
+      typeof recorded !== "number"
+    ) {
       return;
     }
-    this.randomCounts = counts;
-    this.randomDoc = doc;
+    this.randomByWindow.set(win, {
+      counts: { returned, fallback, recorded },
+      doc: this.windowDocument(win),
+    });
+    this.pruneRandom();
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。閉じた窓・別の文書に替わった窓の数を捨てる
+  private pruneRandom() {
+    for (const [win, entry] of this.randomByWindow) {
+      const doc = this.windowDocument(win);
+      if (!doc || doc !== entry.doc) {
+        this.randomByWindow.delete(win);
+      }
+    }
+    this.publishRandom();
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。足した数を item.ts の再生の帯へ（変わった時だけ）
+  private publishRandom() {
+    const all = [...this.randomByWindow.values()].map((e) => e.counts);
+    const next: RandomCounts | null =
+      all.length === 0
+        ? null
+        : all.reduce(
+            (sum, c) => ({
+              recorded: sum.recorded + c.recorded,
+              returned: sum.returned + c.returned,
+              fallback: sum.fallback + c.fallback,
+            }),
+            { recorded: 0, returned: 0, fallback: 0 },
+          );
+    if (JSON.stringify(next) === JSON.stringify(this.randomSum)) {
+      return;
+    }
+    this.randomSum = next;
     this.dispatchEvent(
       new CustomEvent<RandomCounts | null>("capture-player-random", {
         bubbles: true,
         composed: true,
-        detail: counts,
+        detail: next,
       }),
     );
   }
