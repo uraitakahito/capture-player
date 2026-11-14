@@ -5,8 +5,8 @@
  *
  * - 起動の時に全部を読んで手元に置く (合わせて数 MB)。足りない物があれば起動しない —— image が
  *   壊れているので、頁が出ないまま黙って起きるより早く分かる。
- * - HTML と JS には `charset=utf-8` を付ける。index.html は meta charset を持たず、nginx は
- *   charset を付けなかったので、一覧の「Date ▲」が化けていた。
+ * - HTML と JS には `charset=utf-8` を付ける。index.html は meta charset を持たず、写し元の
+ *   replayweb-server が nginx だった頃は charset を付けなかったので、一覧の「Date ▲」が化けていた。
  * - ETag と Last-Modified を付け、条件つきの要求には 304 で答える。Service Worker は頁を開く
  *   たびに sw.js (1 MB 余り) が変わったかを訊く。
  * - /ruffle/ruffle.js・/webmanifest.json・/favicons/* は app が求めるが、配らない (404)。
@@ -28,10 +28,11 @@ const ROUTES: Readonly<Record<string, { file: string; contentType: string }>> = 
   "/index.html": { file: "index.html", contentType: HTML },
   "/ui.js": { file: "ui.js", contentType: JAVASCRIPT },
   "/sw.js": { file: "sw.js", contentType: JAVASCRIPT },
-  // 型は nginx の時と同じ (default_type)。中身は ASCII
+  // 型は replayweb-server が nginx だった頃と同じ (default_type)。中身は ASCII
   "/__version": { file: "__version", contentType: "application/json" },
   "/SOURCE.txt": { file: "SOURCE.txt", contentType: "text/plain" },
-  // nginx は拡張子の無いこれを application/octet-stream で返し、ブラウザは落とすだけだった。
+  // replayweb-server が nginx だった頃は、拡張子の無い写し (/LICENSE-replaywebpage) を
+  // application/octet-stream で返し、ブラウザは落とすだけだった。
   // 読める形で返す (AGPL の写しを受け手が読めるように。capture-player は全体が AGPL)
   "/LICENSE": {
     file: "LICENSE",

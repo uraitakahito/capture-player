@@ -16,7 +16,7 @@ afterAll(async () => {
   cleanupTemporaryDirectories();
 });
 
-describe("ReplayWeb.page の 3 つ", () => {
+describe("ビューアの 3 つ", () => {
   it.each(["/", "/index.html", "/?source=/wacz/a.wacz"])(
     "%s は index.html を text/html; charset=utf-8 で返す",
     async (path) => {

@@ -4,7 +4,7 @@
  *
  *   /wacz/<鍵>          保管庫へ中継 (proxy.ts)
  *   /q/<置き場>/pages    合本の頁の問い (pages-query.ts)
- *   / ほか 6 つ          ReplayWeb.page と image が焼いた物 (static.ts)
+ *   / ほか 6 つ          capture-player のビューアと、同じ build が置く物 (static.ts)
  *   それ以外            404
  *
  * CORS の header はどこにも付けない。保管庫のほかへは何も取りに行かない。

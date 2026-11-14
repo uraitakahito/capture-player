@@ -1,10 +1,13 @@
-# Two jobs. `check` runs the server's own checks — types, lint, format,
+# Three jobs. `check` runs the server's own checks — types, lint, format,
 # check:upstream (every file changed under upstream/ is listed in NOTICE.md),
 # the vitest suite (which covers every behaviour the stacks rely on, against a
-# stand-in store) and the build. `build` builds the image — which also builds
-# the viewer from upstream/ on Node 24 — and asks running containers for what
-# the stacks depend on: a build that succeeds but serves nothing, or a server
-# that only works outside the image, is what it catches.
+# stand-in store) and the build. `viewer` builds the viewer from upstream/ on
+# Node 24, runs the ava tests capture-player added there, and opens the built
+# viewer in headless Chrome (test-e2e/, served and driven on Node 26). `build`
+# builds the image — which builds the viewer again, in its own stage on
+# Node 24 — and asks running containers for what the stacks depend on: a build
+# that succeeds but serves nothing, or a server that only works outside the
+# image, is what it catches.
 name: CI
 
 on:
