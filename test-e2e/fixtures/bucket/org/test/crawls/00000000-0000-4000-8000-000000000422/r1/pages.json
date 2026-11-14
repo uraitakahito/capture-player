@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "crawlId": "00000000-0000-4000-8000-000000000422",
+  "rev": 1,
+  "pages": [
+    {
+      "id": "1df88bac-b91e-4714-9187-19a35513c157",
+      "url": "http://127.0.0.1:19461/viewport/picture-width",
+      "ts": "2026-11-14T12:00:25.285Z",
+      "title": "picture-width",
+      "filename": "picture-width.wacz",
+      "depth": 0,
+      "stage": null,
+      "keys": ["http://127.0.0.1:19461/viewport/picture-width"],
+      "isSeed": true
+    },
+    {
+      "id": "9f78e975-6e79-4e14-8095-15d66d948fbb",
+      "url": "http://127.0.0.1:19461/viewport/picture-width",
+      "ts": "2026-11-14T12:00:41.370Z",
+      "title": "picture-width",
+      "filename": "narrow.wacz",
+      "depth": 0,
+      "stage": null,
+      "keys": ["http://127.0.0.1:19461/viewport/picture-width"],
+      "isSeed": false
+    }
+  ]
+}

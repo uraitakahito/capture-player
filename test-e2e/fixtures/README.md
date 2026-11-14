@@ -43,3 +43,24 @@ WACZ Profile 1.26.0）。2026-11-14 に保管庫から写した（撮ったの�
 
 控えが無いときに wombat の固定の種（種は文書の記録の時刻の秒）が出す数は、`random.test.ts` の「見本の前提」が
 計算し、控えから決まる数と違うことを確かめる。
+
+## 撮った時の窓（`viewport-*.wacz`・`bucket/viewport/`・CAPTURE-422）
+
+`viewport.test.ts` が使う。capture-fixtures v0.37.0 の `/viewport/*`（窓の幅・高さ・DPR で絵の版を選ぶ頁。どの絵も自分の名前を
+描いた SVG）を、手元で起こした capture-fixtures（`127.0.0.1:19461`）と、手元の BrowserHive（v31.1.0 のタグから build した写し。
+`datapackage.json` の版は `31.1.0+local`。ループバックを撮れるように 1 行だけ替えた。Chrome for Testing 156）で、2026-11-14 12:00 UTC
+頃に 1 本ずつ撮った物。保管庫もコンテナも使っていない。頁は `http://127.0.0.1:19461/viewport/...`。
+
+| ファイル                       | 撮り方                                                                 | 記録に在る絵       |
+| ------------------------------ | ---------------------------------------------------------------------- | ------------------ |
+| `viewport-picture-width.wacz`  | `/viewport/picture-width`・1280×800・DPR [1]                           | `width-l-1x`       |
+| `viewport-picture-height.wacz` | `/viewport/picture-height`・1280×800・DPR [1]                          | `height-tall-1x`   |
+| `viewport-js-dpr.wacz`         | `/viewport/js-dpr`・1280×800・DPR [1]                                  | `js-1x`            |
+| `viewport-js-height.wacz`      | `/viewport/js-height`・1280×800・DPR [1]                               | `jsheight-tall`    |
+| `viewport-image-set.wacz`      | `/viewport/image-set`・1280×800・DPR [1]                               | `set-1x`・`res-1x` |
+| `viewport-js-dpr-twice.wacz`   | `/viewport/js-dpr`・1280×800・DPR [1, 2]（乱数の控えなし）             | `js-1x`・`js-2x`   |
+| `viewport-narrow.wacz`         | `/viewport/picture-width`・1000×700・DPR [1]（窓の決め打ちを見分ける） | `width-m-1x`       |
+
+`bucket/viewport/picture-width.wacz`・`narrow.wacz` は上の 2 本の写しで、
+`bucket/org/test/crawls/00000000-0000-4000-8000-000000000422/r1/` の `pages.json`・`replay.json` が束ねる（同じ URL を別の窓で
+撮った 2 本。capture-ledger が書く形）。

@@ -1,7 +1,7 @@
 # capture-player
 
 The Web Capture viewer for BrowserHive WACZ files: WACZ files that conform to the
-[BrowserHive WACZ Profile](https://uraitakahito.github.io/browserhive-specs/wacz-profile/1.25.0/).
+[BrowserHive WACZ Profile](https://uraitakahito.github.io/browserhive-specs/wacz-profile/1.26.0/).
 
 capture-player is a **modified version** of
 [ReplayWeb.page](https://github.com/webrecorder/replayweb.page) 2.5.0 and
@@ -41,6 +41,24 @@ Everything that differs from upstream is listed in [NOTICE.md](NOTICE.md). In sh
   one recorded value, with the counts on hover. This does not make the replay
   the same as the capture: other calls, and everything else, still come from
   the replay.
+- It shows a BrowserHive page in the window it was captured in. A page picks
+  images (`srcset`, `<picture>`, CSS `image-set()` and `resolution`) and runs
+  script (`devicePixelRatio`, `matchMedia`) by the window it is in, and the
+  archive only holds what the capturing browser asked for in its window
+  (`browserhive:capture.settings.viewport` and `devicePixelRatios` in
+  `datapackage.json`; BrowserHive's default is 1280 × 800 at a device pixel
+  ratio of 1). capture-player sizes the replay frame to that window, sets CSS
+  `zoom` so the frame's device pixel ratio is the captured one, scales the frame
+  to fit the viewer's window, and has the page's script read the captured
+  `devicePixelRatio` (upstream always gives it 2 when the archive does not say).
+  A bar above the frame says so, with "Actual size" (the same frame, unscaled,
+  scrolled) and "Use my window" (the frame fills the window, as upstream; the
+  page then asks for the viewer's variants, which the archive may not hold;
+  script still reads the captured `devicePixelRatio`). An archive that does not
+  record the window replays as upstream does. Measured with Chrome for Testing
+  156; CSS `zoom` changing a frame's device pixel ratio is not checked in other
+  browsers. With `zoom` below 1 (a capture at DPR 1 on a Retina screen), the
+  mouse wheel scrolls the page further than in the viewer's window.
 - It never sends an archive URL to Webrecorder's helper proxy.
 - About says it is a modified version, where its source is, and its license.
 - It does **not** stop a replayed page from sending WebRTC (UDP) traffic. Pages

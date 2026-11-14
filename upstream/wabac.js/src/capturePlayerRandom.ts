@@ -5,6 +5,14 @@
 // ここは純粋な関数と、WACZ から控えを読む関数だけ。頁の中で値を返すのは rewrite/capturePlayerRandomInject.ts。
 // 頁の中の側もこのファイルの関数（callerFromStack）を使うので、重い物を import しない。
 // `random/recorder.js` は読まず、走らせない（仕様が禁じる）。
+// 2026-11-14（CAPTURE-422）: datapackage.json は capturePlayerEnv.ts が WACZ ごとに一度だけ読み、撮った時の窓と分け合う。
+
+import {
+  getDatapackage,
+  isWaczFileSource,
+  readWaczFile,
+  type WaczFileSource,
+} from "./capturePlayerEnv";
 
 export const RANDOM_VALUES_PATH = "random/values.jsonl";
 export const RANDOM_PROFILE = "browserhive:random/1";
@@ -25,6 +33,8 @@ export type RandomSelection = {
   draws: Record<string, RandomValue[]>;
   /** 選んだ文書の draw の行の数（値の無い行も含む） */
   recorded: number;
+  /** 選んだ文書の行の dpr（その文書を読み込んだ回の DPR。CAPTURE-422 が使う）。無ければ null */
+  dpr: number | null;
 };
 
 type Line = Record<string, unknown>;
@@ -107,6 +117,7 @@ export function selectRandomDocument(
   const target = documentKeyUrl(url);
   const when = date.getTime();
   const seen = new Set<number>();
+  const dprOf = new Map<number, number>();
   let best: { document: number; distance: number } | null = null;
   let undated: number | null = null;
 
@@ -119,6 +130,9 @@ export function selectRandomDocument(
       continue;
     }
     seen.add(doc);
+    if (typeof line["dpr"] === "number") {
+      dprOf.set(doc, line["dpr"]);
+    }
     if (line["url"] !== target) {
       continue;
     }
@@ -165,7 +179,7 @@ export function selectRandomDocument(
   for (const { key, value } of rows) {
     (draws[key] ??= []).push(value);
   }
-  return { document: chosen, draws, recorded: rows.length };
+  return { document: chosen, draws, recorded: rows.length, dpr: dprOf.get(chosen) ?? null };
 }
 
 /** 返せる値が 1 つでもあるか */
@@ -250,23 +264,10 @@ export function originalFromReplayUrl(url: string, prefix: string): string | nul
 // ===========================================================================
 // WACZ から読む
 
-/** MultiWACZ のうち、ここで使う所 */
-export type RandomSource = {
-  loadFileFromNamedWACZ: (
-    waczname: string,
-    filename: string,
-    opts: Record<string, unknown>,
-  ) => Promise<{ reader: { readFully: () => Promise<Uint8Array> } }>;
-  waczfiles: Record<string, { entries?: Record<string, { uncompressedSize: number }> | null }>;
-};
+/** MultiWACZ のうち、ここで使う所（2026-11-14 から capturePlayerEnv.ts の WaczFileSource と同じ） */
+export type RandomSource = WaczFileSource;
 
-export function isRandomSource(store: unknown): store is RandomSource {
-  return (
-    !!store &&
-    typeof (store as RandomSource).loadFileFromNamedWACZ === "function" &&
-    typeof (store as RandomSource).waczfiles === "object"
-  );
-}
+export const isRandomSource = isWaczFileSource;
 
 function hex(buf: ArrayBuffer): string {
   return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
@@ -280,19 +281,10 @@ export async function loadRandomLines(
   store: RandomSource,
   waczname: string,
 ): Promise<Line[] | null> {
-  const readText = async (filename: string, limit: number) => {
-    const { reader } = await store.loadFileFromNamedWACZ(waczname, filename, {
-      unzip: false,
-    });
-    const bytes = await reader.readFully();
-    return bytes.length > limit ? null : bytes;
-  };
-
-  const pkgBytes = await readText("datapackage.json", RANDOM_MAX_BYTES);
-  if (!pkgBytes) {
+  const pkg = await getDatapackage(store, waczname);
+  if (!pkg) {
     return null;
   }
-  const pkg = JSON.parse(new TextDecoder().decode(pkgBytes)) as Record<string, unknown>;
   const capture = pkg["browserhive:capture"] as { random?: { recorded?: unknown } } | undefined;
   if (capture?.random?.recorded !== true) {
     return null;
@@ -310,7 +302,7 @@ export async function loadRandomLines(
   if (typeof size !== "number" || size > RANDOM_MAX_BYTES) {
     return null;
   }
-  const bytes = await readText(RANDOM_VALUES_PATH, RANDOM_MAX_BYTES);
+  const bytes = await readWaczFile(store, waczname, RANDOM_VALUES_PATH, RANDOM_MAX_BYTES);
   if (!bytes) {
     return null;
   }
