@@ -6,6 +6,8 @@ import { wrapCss } from "./misc";
 import rwpLogo from "~assets/brand/replaywebpage-icon-color.svg";
 import type { ItemType } from "./types";
 import type { ReplayLoadingDetail, TabNavEvent } from "./events";
+// capture-player: 2026-11-14 に足した（CAPTURE-378）
+import type { RandomCounts } from "./types";
 import { keyed } from "lit/directives/keyed.js";
 
 /**
@@ -19,6 +21,7 @@ import { keyed } from "lit/directives/keyed.js";
  * @fires replay-loading ReplayLoadingDetail
  * @fires cancel-click-download
  * @fires update-download-res-url
+ * @fires capture-player-random RandomCounts | null (capture-player: 2026-11-14 に足した)
  */
 class Replay extends LitElement {
   @property({ type: Object })
@@ -82,6 +85,14 @@ class Replay extends LitElement {
   private _loadPoll: null | number = null;
 
   private hiliter: HoverHiliter | null = null;
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。再生の中の文書（frame の中も）が送る、乱数の控えから
+  // 返した数を、送った窓ごとに、送った文書と一緒に持つ。文書が替わった窓の数は捨てる。帯に出すのは足した数
+  private readonly randomByWindow = new Map<
+    Window,
+    { counts: RandomCounts; doc: Document | null }
+  >();
+  private randomSum: RandomCounts | null = null;
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
@@ -174,6 +185,9 @@ class Replay extends LitElement {
   updated(changedProperties: PropertyValues<this>) {
     if (this.iframeUrl && changedProperties.has("iframeUrl")) {
       this.waitForLoad();
+      // capture-player: 2026-11-14 に足した（CAPTURE-378）。別の頁を開いたら、前の文書の数を捨てる
+      this.randomByWindow.clear();
+      this.publishRandom();
 
       const detail = { title: "Archived Page", replayTitle: false };
       this.dispatchEvent(
@@ -239,6 +253,16 @@ class Replay extends LitElement {
   onReplayMessage(event: MessageEvent) {
     const iframe = this.renderRoot.querySelector("iframe");
 
+    // capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の控えの数は、再生の中の frame の文書からも届く。
+    // UI で使い、親の窓へは渡さない
+    if (iframe && event.data?.wb_type === "bh-random") {
+      const source = event.source as Window | null;
+      if (source && this.isInReplay(source, iframe)) {
+        this.onRandomCounts(source, event.data);
+      }
+      return;
+    }
+
     if (iframe && event.source === iframe.contentWindow) {
       if (
         event.data.wb_type === "load" ||
@@ -251,6 +275,8 @@ class Replay extends LitElement {
         this.title = event.data.title || this.title;
         this.replayNotFoundError = event.data.wb_type === "archive-not-found";
         this.clearLoading(iframe);
+        // capture-player: 2026-11-14 に足した（CAPTURE-378）。文書が替わった窓の数を捨てる
+        this.pruneRandom();
 
         if (event.data.icons) {
           const icons = event.data.icons;
@@ -270,6 +296,88 @@ class Replay extends LitElement {
         window.parent.postMessage(passEvent);
       }
     }
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。win が再生の iframe の窓か、その中の frame の窓か
+  private isInReplay(win: Window, iframe: HTMLIFrameElement): boolean {
+    try {
+      for (
+        let w: Window | null = win;
+        w;
+        w = w.parent === w ? null : w.parent
+      ) {
+        if (w === iframe.contentWindow) {
+          return true;
+        }
+      }
+    } catch (_) {
+      // 読めない窓は再生の中ではない
+    }
+    return false;
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）
+  private windowDocument(win: Window): Document | null {
+    try {
+      return win.closed ? null : win.document;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）
+  private onRandomCounts(win: Window, data: Record<string, unknown>) {
+    const { returned, fallback, recorded } = data;
+    if (
+      typeof returned !== "number" ||
+      typeof fallback !== "number" ||
+      typeof recorded !== "number"
+    ) {
+      return;
+    }
+    this.randomByWindow.set(win, {
+      counts: { returned, fallback, recorded },
+      doc: this.windowDocument(win),
+    });
+    this.pruneRandom();
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。閉じた窓・別の文書に替わった窓の数を捨てる
+  private pruneRandom() {
+    for (const [win, entry] of this.randomByWindow) {
+      const doc = this.windowDocument(win);
+      if (!doc || doc !== entry.doc) {
+        this.randomByWindow.delete(win);
+      }
+    }
+    this.publishRandom();
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。足した数を item.ts の再生の帯へ（変わった時だけ）
+  private publishRandom() {
+    const all = [...this.randomByWindow.values()].map((e) => e.counts);
+    const next: RandomCounts | null =
+      all.length === 0
+        ? null
+        : all.reduce(
+            (sum, c) => ({
+              recorded: sum.recorded + c.recorded,
+              returned: sum.returned + c.returned,
+              fallback: sum.fallback + c.fallback,
+            }),
+            { recorded: 0, returned: 0, fallback: 0 },
+          );
+    if (JSON.stringify(next) === JSON.stringify(this.randomSum)) {
+      return;
+    }
+    this.randomSum = next;
+    this.dispatchEvent(
+      new CustomEvent<RandomCounts | null>("capture-player-random", {
+        bubbles: true,
+        composed: true,
+        detail: next,
+      }),
+    );
   }
 
   // @ts-expect-error [// TODO: Fix this the next time the file is edited.] - TS7006 - Parameter 'event' implicitly has an 'any' type.

@@ -15,6 +15,8 @@ import { API } from "./api";
 import WOMBAT from "../dist-wombat/wombat.txt";
 import WOMBAT_WORKERS from "../dist-wombat/wombatWorkers.txt";
 import WOMBAT_PROXY from "../dist-wombat/wombatProxy.txt";
+// capture-player: 2026-11-14 に足した（CAPTURE-378）
+import CAPTURE_PLAYER_RANDOM from "../dist-wombat/capturePlayerRandom.txt";
 
 import {
   ArchiveRequest,
@@ -260,6 +262,11 @@ export class SWReplay {
     this.staticData.set(this.staticPrefix + "wombatProxy.js", {
       type: "application/javascript",
       content: WOMBAT_PROXY,
+    });
+    // capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の控えを返す script
+    this.staticData.set(this.staticPrefix + "capturePlayerRandom.js", {
+      type: "application/javascript",
+      content: CAPTURE_PLAYER_RANDOM,
     });
 
     if (sp.has("serveIndex")) {

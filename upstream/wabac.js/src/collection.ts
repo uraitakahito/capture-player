@@ -10,6 +10,8 @@ import {
   REPLAY_TOP_FRAME_NAME,
   getCSP,
   addProxyAllowPaths,
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）
+  isAjaxRequest,
 } from "./utils";
 
 import { ArchiveResponse } from "./response";
@@ -27,6 +29,13 @@ import {
 import { getDownloadAttachmentFilename } from "./detectfiletype";
 // capture-player: 2026-11-12 に足した
 import { TRUNCATED_HEADER } from "./warcloader";
+// capture-player: 2026-11-14 に足した（CAPTURE-378）
+import {
+  buildRandomInsert,
+  getRandomLines,
+  isRandomSource,
+  selectRandomDocument,
+} from "./capturePlayerRandom";
 
 export type Prefixes = {
   static: string;
@@ -333,6 +342,9 @@ export class Collection {
     const basePrefixTS = basePrefix + requestTS;
     const arResponse = response;
 
+    // capture-player: 2026-11-14 に改変（CAPTURE-378）。乱数の控えから選んだ値を渡す断片（無ければ空）
+    let randomInsert = "";
+
     const headInsertFunc = (url: string) => {
       const topUrl = basePrefixTS + (requestTS ? "/" : "") + url;
 
@@ -343,6 +355,7 @@ export class Collection {
         basePrefix,
         arResponse,
         request.referrer,
+        randomInsert,
       );
     };
 
@@ -380,6 +393,24 @@ export class Collection {
     };
 
     const rewriter = new Rewriter(rewriteOpts);
+
+    // capture-player: 2026-11-14 に足した（CAPTURE-378）。head に挿し込む HTML の文書だけ、その記録の WACZ の
+    // 乱数の控えから、この文書の行を選ぶ。条件は rewriter.rewrite が rewriteHtml を呼ぶ条件と同じ。
+    if (
+      !noRewrite &&
+      !isAjaxRequest(request) &&
+      response.waczName &&
+      isRandomSource(this.store) &&
+      rewriter.getRewriteMode(request, response, baseUrl) === "html"
+    ) {
+      const lines = await getRandomLines(this.store, response.waczName);
+      if (lines) {
+        randomInsert = buildRandomInsert(
+          selectRandomDocument(lines, response.url, response.date),
+          this.staticPrefix,
+        );
+      }
+    }
 
     response = await rewriter.rewrite(response, request);
 
@@ -719,6 +750,8 @@ window.home = "${this.rootPrefix}";
     prefix: string,
     response: ArchiveResponse,
     referrer: string,
+    // capture-player: 2026-11-14 に足した（CAPTURE-378）。空なら挿し込みは改変前と同じ
+    randomInsert = "",
   ) {
     const coll = this.name;
 
@@ -821,7 +854,7 @@ ${this.injectRelCanon ? `<link rel="canonical" href="${url}"/>` : ""}
   }
     ${disableMSE ? DISABLE_MEDIASOURCE_SCRIPT : ""}
 </script>
-${this.injectScripts.map((script) => `<script src='${this.proxyPrefix}${script}'> </script>`).join("")}
+${randomInsert}${this.injectScripts.map((script) => `<script src='${this.proxyPrefix}${script}'> </script>`).join("")}
 <!-- End WB Insert -->
 `;
   }

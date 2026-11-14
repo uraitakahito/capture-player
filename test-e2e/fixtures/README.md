@@ -22,3 +22,24 @@
 | `bucket/org/test/crawls/00000000-0000-4000-8000-000000000245/r1/pages.json`・`replay.json` | capture-ledger が書く形（`pagesQueryUrl` つき・クロールの id は 1 つ・`isSeed` は frameset だけ）に、6 本から組んだ物                                                                                                                                                                |
 
 **並びが要。** 押す先の `leaf-2.wacz` は、`resources` では 6 番目、名前の順では 5 番目に在る。上流の wabac.js（`upstream/wabac.js/src/wacz/multiwacz.ts` の `getWACZFilesToTry`・:1408-1499）は、頁の問い（`pagesQueryUrl`）を使わない要求では、要求が名指す WACZ のクロールに起点の頁（`isSeed`）が在ればその WACZ を（:1480-1488）、無ければ WACZ の一覧の先頭 3 本（`maxFallbackLookups`・:107・:1491-1498）だけを探す。この 3 本は `resources` の順ではなく **WACZ の名前の順** で選ばれる。2026-11-14 に CAPTURE-245 の改変を外して確かめた: いまの見本は frameset・hub・iframe の 3 本を読んで Not Found／`leaf-2.wacz` を名前の順で先頭に来る名前にすると（`resources` では 6 番目のまま）見つかる／名前を替えずに `resources` の 1 番目に動かしても Not Found。同じ context で 2 度目に開いても同じ。`<frame>` の中の遷移は、実測ではこの先頭 3 本の道に入った。名前の順で 3 本以内に置くと直しが無くても見つかり、試験が反証にならない。
+
+## 乱数の控え（`random-*.wacz`・CAPTURE-378）
+
+`random.test.ts` が使う。4 本は BrowserHive の e2e が dev の一式（capture-fixtures の `/random/*`）で撮った本物
+（BrowserHive v31.1.0 の build `ef8bf97e`・`datapackage.json` の `software` は `browserhive/31.0.0+5.gef8bf97e`・
+WACZ Profile 1.26.0）。2026-11-14 に保管庫から写した（撮ったのは 08:47 UTC 頃）。頁は
+`http://capture-fixtures-1-a.browserhive:8080/random/...`。残りの 2 本は `random-pick.wacz` から
+`node test-e2e/fixtures/derive-random.ts` で作る（変えないエントリは圧縮したバイト列をそのまま写す。何度流しても
+同じバイト列）。
+
+| ファイル               | 元                                                                                                                                                                                         | 何を見るか                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| `random-pick.wacz`     | `e2e-146.wacz`（`/random/pick`。document の行 1 つ・`pick.js` の `Math.random` の draw 1 つ・値 0.9604632342795921）                                                                       | 960463 を選び、その絵が出る。再生の帯に印                         |
+| `random-frame.wacz`    | `e2e-150.wacz`（`/random/frame` と、同じサイトの iframe の `/random/pick`。draw は frame の文書（`document` 1・`frame: "frame"`）の物・値 0.70543710049348）                               | iframe の中で 705437。帯の数に入る                                |
+| `random-twice.wacz`    | `e2e-153.wacz`（`devicePixelRatios` [1, 2] で `/random/pick` を 2 度読んだ物。document の行 2 つ（dpr 1・2、record と date が別）・値 0.3193780804432035 と 0.8710058479768352）           | 2 つ目の文書の時刻（`20261114084739`）で 871005、1 つ目で 319378  |
+| `random-bytes.wacz`    | `e2e-148.wacz`（`/random/bytes`。`crypto.getRandomValues` の draw 1 つ・`bytes` 4・値 `AOvwqQ==`）                                                                                         | 4 バイトを `Uint32Array` で読んだ数の下 6 桁 138304               |
+| `random-none.wacz`     | `random-pick.wacz` から `random/values.jsonl`・`random/recorder.js` と、その `resources` の行と、`browserhive:capture.random` を抜いた物。`datapackage-digest.json` の hash は合わなくなる | 今までどおり wombat の固定の種の 712229。挿し込みに script が無い |
+| `random-tampered.wacz` | `random-pick.wacz` の `random/values.jsonl` の値の最後の 1 字を変えた物（0.9604632342795921 → …922。JSON のまま、n は同じ）。`resources` の hash はそのまま                                | hash が合わないので使わない（712229）                             |
+
+控えが無いときに wombat の固定の種（種は文書の記録の時刻の秒）が出す数は、`random.test.ts` の「見本の前提」が
+計算し、控えから決まる数と違うことを確かめる。

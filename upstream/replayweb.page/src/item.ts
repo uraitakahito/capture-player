@@ -46,6 +46,8 @@ import { RWPEmbedReceipt } from "./embed-receipt";
 import Split from "split.js";
 
 import type { FavIconEventDetail, ItemType, URLResource } from "./types";
+// capture-player: 2026-11-14 に足した（CAPTURE-378）
+import type { RandomCounts } from "./types";
 import type { Replay } from "./replay";
 import { ifDefined } from "lit/directives/if-defined.js";
 
@@ -217,6 +219,13 @@ class Item extends LitElement {
 
   @state()
   private tabDataBeforeFullView?: TabData;
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の控えから返した数（replay.ts が送る）
+  @state()
+  private replayRandom: RandomCounts | null = null;
+
+  @state()
+  private showRandomDetail = false;
 
   private splitter: Split.Instance | null = null;
 
@@ -930,6 +939,31 @@ class Item extends LitElement {
         font-weight: 600;
       }
 
+      /* capture-player: 2026-11-14 に足した（CAPTURE-378） */
+      .random-badge {
+        all: unset;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--sl-spacing-x-small);
+        margin-right: var(--sl-spacing-x-small);
+        background-color: var(--sl-color-neutral-200);
+        color: var(--sl-color-neutral-800);
+        line-height: 1;
+        padding: var(--sl-spacing-3x-small) var(--sl-spacing-x-small);
+        border-radius: var(--sl-border-radius-small);
+        font-size: var(--sl-font-size-x-small);
+        white-space: nowrap;
+      }
+
+      .random-badge:focus-visible {
+        outline: 2px solid var(--sl-color-blue-500);
+      }
+
+      .random-detail {
+        font-variant-numeric: tabular-nums;
+      }
+
       .timestamp-menu-item {
         font-variant-numeric: tabular-nums;
       }
@@ -1143,6 +1177,13 @@ class Item extends LitElement {
                   id="replay"
                   @replay-loading="${this.onReplayLoading}"
                   @replay-favicons="${this.onFavIcons}"
+                  @capture-player-random="${(
+                    e: CustomEvent<RandomCounts | null>,
+                  ) => {
+                    // capture-player: 2026-11-14 に足した（CAPTURE-378）
+                    this.replayRandom = e.detail;
+                    this.showRandomDetail = false;
+                  }}"
                   @cancel-click-download="${() =>
                     (this.clickToDownloadMode = false)}"
                   exportparts="
@@ -1566,6 +1607,29 @@ class Item extends LitElement {
     `;
   }
 
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。控えの値を 1 つでも返した文書にだけ出す。
+  // 再生が撮った時と同じになったとは言わない（返したのは一部の呼び出しで、残りは再生が作った値）
+  private renderRandomBadge() {
+    const r = this.replayRandom;
+    if (!r || r.returned <= 0) {
+      return nothing;
+    }
+    const detail = `recorded ${r.recorded} · returned ${r.returned} · fallback ${r.fallback}`;
+    return html`<button
+      type="button"
+      id="random-badge"
+      class="random-badge"
+      title="${detail}"
+      aria-expanded="${this.showRandomDetail ? "true" : "false"}"
+      @click="${() => (this.showRandomDetail = !this.showRandomDetail)}"
+    >
+      Random: recorded
+      values${this.showRandomDetail
+        ? html`<span class="random-detail">${detail}</span>`
+        : nothing}
+    </button>`;
+  }
+
   private renderTimestamp() {
     const timestampStrs: { date: string; label: string }[] = [];
     this.multiTs?.forEach((ts) => {
@@ -1586,7 +1650,9 @@ class Item extends LitElement {
     const currDateStr = this.ts
       ? dateTimeFormatter.format(tsToDate(this.ts) as Date)
       : "";
+    // capture-player: 2026-11-14 に改変（CAPTURE-378）。時刻の前に、乱数の控えを返したことの印
     return html`<div id="datetime" class="control is-hidden-mobile loc-overlay">
+      ${this.renderRandomBadge()}
       ${timestampStrs.length > 1
         ? html`
             <sl-dropdown placement="top-end" hoist>
