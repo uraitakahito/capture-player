@@ -1246,6 +1246,21 @@ export class MultiWACZ
       if (!waczname) {
         return null;
       }
+      // capture-player: 2026-11-15 に足した。BrowserHive の節目のスクリーンショット（頁の一覧の絵）は、名指した WACZ の、
+      // その名前の記録だけを返す。query だけ違う別の頁の絵（fuzzy）も、他の WACZ の記録（索引は合本の WACZ で共有）も
+      // 返さず、名指した WACZ に無ければ他の WACZ も探さない。束ねて開いたとき、絵の無い行に別の取り込みの絵を
+      // 出さないため（CAPTURE-440）
+      if (request.url.startsWith("urn:browserhive:screenshot:")) {
+        resp = await super.getResource(request, prefix, event, {
+          waczname,
+          noFuzzyCheck: true,
+          skip5xx: request.isProxyOrigin,
+          isPage,
+        });
+        return resp && "waczName" in resp && resp.waczName === waczname
+          ? resp
+          : null;
+      }
       resp = await super.getResource(request, prefix, event, {
         waczname,
         skip5xx: request.isProxyOrigin,

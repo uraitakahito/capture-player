@@ -65,3 +65,30 @@ WACZ Profile 1.26.0）。2026-11-14 に保管庫から写した（撮ったの�
 `bucket/viewport/picture-width.wacz`・`narrow.wacz` は上の 2 本の写しで、
 `bucket/org/test/crawls/00000000-0000-4000-8000-000000000422/r1/` の `pages.json`・`replay.json` が束ねる（同じ URL を別の窓で
 撮った 2 本。capture-ledger が書く形）。
+
+## 頁の一覧の絵（CAPTURE-440）
+
+`thumbnails.test.ts` が使う。上の 3 本は capture-workbench v0.54.0 の `sandbox/samples/` から 2026-11-15 に写した物
+（BrowserHive v30.2.0 の e2e が capture-fixtures を 2026-11-13 に撮った WACZ。撮り方は capture-workbench の
+`sandbox/samples/SOURCE.md` の「BrowserHive の e2e の取り込みの 3 本」）。sha256 は SOURCE.md の値と照らした。
+`thumbnail-only.wacz` と `bucket/thumbnails/pick-no-shot.wacz` は `random-pick.wacz` から
+`node test-e2e/fixtures/derive-random.ts` で作る（「乱数の控え」と同じ作り方）。
+
+| ファイル                              | 元                                                                                                                                                                                                                                                                                  | 何を見るか                                                                     |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `with-screenshots.wacz`               | `/marked/search/public` を検索するスクリプトつきで撮った物。節目のスクリーンショットが 2 枚（after-load は検索の前・after-behaviors は検索の後で、文書の URL も違う）。sha256 `abe9294e…`                                                                                           | 文書の行に after-load、写しの行に同じ時点の絵。1280×800 の絵を歪めない         |
+| `without-screenshots-secret.wacz`     | `/plain-html` をシークレットつきで撮った物。どの時点の絵も残していない（`skipped: secret`）。sha256 `5c6c28c2…`                                                                                                                                                                     | 絵の無い行は今までどおりの代わりの箱                                           |
+| `without-screenshots-withheld.wacz`   | `/marked/text/secret` を content-type の方針で伏せた物。絵を残していない（`skipped: withheld`）。sha256 `2db7f5a6…`                                                                                                                                                                 | 同上                                                                           |
+| `thumbnail-only.wacz`                 | `random-pick.wacz` の after-load の絵のレコードを写して `WARC-Target-URI` だけを `urn:thumbnail:<頁の url>` に替えた物を WARC の後ろに足し、索引の絵の行をそれを指す行に替えた物。wabac.js は索引の url とレコードの `WARC-Target-URI` が違うと読まないので、索引だけは替えられない | 上流の名前の絵だけを持つ WACZ では、それを出す。並べ替えても絵が自分の行に付く |
+| `bucket/thumbnails/pick.wacz`         | `random-pick.wacz` の写し                                                                                                                                                                                                                                                           | 合本で、同じ URL の別の回                                                      |
+| `bucket/thumbnails/twice.wacz`        | `random-twice.wacz` の写し                                                                                                                                                                                                                                                          | 同上                                                                           |
+| `bucket/thumbnails/pick-no-shot.wacz` | `random-pick.wacz` の索引から絵の行を抜いた物（WARC は替えない）                                                                                                                                                                                                                    | 合本で、絵の無い回                                                             |
+
+合本は 2 つ。どちらも capture-ledger が書く形（`initialPages` は文書の行だけ）に、手で組んだ物:
+
+- `bucket/org/test/crawls/00000000-0000-4000-8000-000000000440/r1/`: `pick.wacz`・`twice.wacz`（同じ URL を 2 回撮った 2 本。
+  絵も違う）
+- `bucket/org/test/crawls/00000000-0000-4000-8000-000000000441/r1/`: `twice.wacz`・`pick-no-shot.wacz`（同じ URL の、絵の在る回と
+  無い回）
+
+合本の一覧は、日付の見出しを押しても並びが変わらない（2026-11-15 に確かめた。一覧の並べ替え（`pages.ts`）は上流のまま）。並べ替えの試験は 1 本の WACZ で見る。

@@ -23,6 +23,10 @@ replayweb-server では撮った時と違う物を選び直し、capture-player 
 `viewport` と `devicePixelRatios`）で開きます（CAPTURE-422）。窓の幅・高さ・DPR で絵の版を選ぶ頁は、replayweb-server では
 見る人の窓の版を求めて記録に無いことがあり、capture-player では撮った時の版を求めます。
 
+頁の一覧の絵も違います（CAPTURE-440）。上流の一覧は絵を `urn:thumbnail:<頁の URL>` の名前だけで引きますが、BrowserHive WACZ に
+在るのは節目のスクリーンショット（`urn:browserhive:screenshot:<時点>:<文書の URL>`）です。replayweb-server（手元の dev の一式では
+8899 番）の一覧には絵が出ず、capture-player（8897 番）では文書の行に after-load の絵、写しの行に同じ時点の絵が出ます。
+
 ## 上流の `static/wombat*.js` は配っていない
 
 `upstream/wabac.js/static/wombat.js` と `wombatWorkers.js` は、上流の wabac.js の repo に在る、前に build した写しです

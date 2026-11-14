@@ -1,0 +1,39 @@
+{
+  "title": "thumbnails, one without a screenshot (CAPTURE-440)",
+  "resources": [
+    {
+      "name": "twice.wacz",
+      "path": "/wacz/thumbnails/twice.wacz",
+      "hash": "sha256:76838f4e0248cfec4895eaabd80ffe67cd86d57a98bfd99eedb6f45f1d98c072",
+      "crawlId": "00000000-0000-4000-8000-000000000441"
+    },
+    {
+      "name": "pick-no-shot.wacz",
+      "path": "/wacz/thumbnails/pick-no-shot.wacz",
+      "hash": "sha256:4149e6db9c80066e61de66fbf446a58df84d0eaa2d3caaaec3659ce73a72cd99",
+      "crawlId": "00000000-0000-4000-8000-000000000441"
+    }
+  ],
+  "initialPages": [
+    {
+      "id": "3ebfb515-6261-4ead-b9ef-23529560f423",
+      "url": "http://capture-fixtures-1-a.browserhive:8080/random/pick",
+      "ts": "2026-11-14T08:47:31.894Z",
+      "title": "pick 960463",
+      "filename": "pick-no-shot.wacz",
+      "isSeed": true,
+      "crawl_id": "00000000-0000-4000-8000-000000000441"
+    },
+    {
+      "id": "7555138f-d039-428a-a760-bfff7664db17",
+      "url": "http://capture-fixtures-1-a.browserhive:8080/random/pick",
+      "ts": "2026-11-14T08:47:38.271Z",
+      "title": "pick 871005",
+      "filename": "twice.wacz",
+      "isSeed": true,
+      "crawl_id": "00000000-0000-4000-8000-000000000441"
+    }
+  ],
+  "totalPages": 4,
+  "pagesQueryUrl": "/q/org/test/crawls/00000000-0000-4000-8000-000000000441/r1/pages"
+}

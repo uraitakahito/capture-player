@@ -64,6 +64,10 @@ class PageEntry extends LitElement {
   @state()
   thumbnailValid = true;
 
+  // capture-player: 2026-11-15 に足した。いま試している絵の名前の候補（thumbnailCandidates()）の番号（CAPTURE-440）
+  @state()
+  thumbnailCandidate = 0;
+
   @state()
   iconValid = true;
 
@@ -129,6 +133,12 @@ class PageEntry extends LitElement {
         background-color: var(--sl-color-neutral-100);
         border: 1px solid var(--sl-color-neutral-200);
         border-radius: var(--sl-border-radius-large);
+      }
+
+      /* capture-player: 2026-11-15 に足した。箱は 16:9、BrowserHive の絵は 16:10（1280×800）。歪めずに上を揃えて切る（CAPTURE-440） */
+      img.thumbnail {
+        object-fit: cover;
+        object-position: top center;
       }
 
       .thumbnail-placeholder {
@@ -259,6 +269,16 @@ class PageEntry extends LitElement {
     `;
   }
 
+  // capture-player: 2026-11-15 に足した。一覧は行の要素を使い回す（pages.ts の map に鍵が無い）ので、別の頁に
+  // 替わったら絵と favicon の試しを始めからやり直す（CAPTURE-440）
+  willUpdate(changedProperties: PropertyValues<this>) {
+    if (changedProperties.has("page")) {
+      this.thumbnailCandidate = 0;
+      this.thumbnailValid = true;
+      this.iconValid = true;
+    }
+  }
+
   updated(changedProperties: PropertyValues<this>) {
     if (changedProperties.has("page") || changedProperties.has("query")) {
       this.updateSnippet();
@@ -368,10 +388,50 @@ class PageEntry extends LitElement {
     `;
   }
 
-  private getReplayPrefix() {
+  // capture-player: 2026-11-15 に改変。時刻を渡せるようにした（CAPTURE-440）
+  private getReplayPrefix(ts: string | number = this.page!.ts || "") {
     const waczhash = this.page!.waczhash ? `:${this.page!.waczhash}/` : "";
-    const ts = this.page!.ts || "";
     return this.replayPrefix + "/" + waczhash + ts + "id_";
+  }
+
+  // capture-player: 2026-11-15 に足した。行の絵の名前の候補を、試す順に（CAPTURE-440）。
+  // - 文書の行: BrowserHive の after-load の節目のスクリーンショット → 上流の urn:thumbnail:
+  // - 写しの行（urn:browserhive:snapshot:<時点>:<URL>）: 同じ時点のスクリーンショットだけ。時点は URN から読む
+  //   （合本の /q/ の答えに stage は無い）
+  // BrowserHive の名前は 14 桁の時刻で引く。page.ts（13 桁のミリ秒）は wabac.js が時刻として読めず、
+  // その名前の一番新しい記録を返す（同じ URL を 2 回撮った合本で、別の回の絵になる）。
+  // 上流の候補（urn:thumbnail:・favicon）は上流のとおり page.ts で引く。
+  private thumbnailCandidates(): string[] {
+    const url = this.page!.url;
+    const browserhive = this.getReplayPrefix(
+      getPageDateTS(this.page!).timestamp,
+    );
+    const snapshot = SNAPSHOT_URN.exec(url);
+    if (snapshot) {
+      return [`${browserhive}/${SCREENSHOT_URN}${snapshot[1]}:${snapshot[2]}`];
+    }
+    const upstream = `${this.getReplayPrefix()}/urn:thumbnail:${url}`;
+    if (!/^https?:/.test(url)) {
+      return [upstream];
+    }
+    return [
+      `${browserhive}/${SCREENSHOT_URN}after-load:${url.split("#")[0]}`,
+      upstream,
+    ];
+  }
+
+  // capture-player: 2026-11-15 に足した。絵が読めなければ次の候補へ。候補が尽きたら上流のとおり代わりの箱に替える。
+  // 要素の今の src が試している候補と違う error（前の頁の絵など）は捨てる（CAPTURE-440）
+  private onThumbnailError(event: Event, candidates: string[]) {
+    const img = event.currentTarget as HTMLImageElement;
+    if (img.getAttribute("src") !== candidates[this.thumbnailCandidate]) {
+      return;
+    }
+    if (this.thumbnailCandidate + 1 < candidates.length) {
+      this.thumbnailCandidate++;
+    } else {
+      this.thumbnailValid = false;
+    }
   }
 
   private renderPageIcon() {
@@ -392,11 +452,13 @@ class PageEntry extends LitElement {
       </div>`;
     }
 
+    // capture-player: 2026-11-15 に改変。名前の候補を順に試す（CAPTURE-440）
+    const candidates = this.thumbnailCandidates();
     return html`<div class="image is-16by9">
       <img
         class="thumbnail"
-        @error=${() => (this.thumbnailValid = false)}
-        src=${`${this.getReplayPrefix()}/urn:thumbnail:${this.page!.url}`}
+        @error=${(event: Event) => this.onThumbnailError(event, candidates)}
+        src=${candidates[this.thumbnailCandidate]!}
         loading="lazy"
       />
     </div>`;
@@ -507,6 +569,8 @@ export { PageEntry };
 
 // capture-player: 2026-11-12 に足した。BrowserHive WARC Profile の写しの URI（urn:browserhive:snapshot:）から、時点と元の文書の URL を読む。
 const SNAPSHOT_URN = /^urn:browserhive:snapshot:([a-z-]+):(.+)$/;
+// capture-player: 2026-11-15 に足した。節目のスクリーンショットの URI の頭（後ろに <時点>:<文書の URL>。CAPTURE-440）
+const SCREENSHOT_URN = "urn:browserhive:screenshot:";
 const STAGE_LABELS: Record<string, string> = {
   "after-load": "Snapshot after load",
   "after-behaviors": "Snapshot after scripts",
