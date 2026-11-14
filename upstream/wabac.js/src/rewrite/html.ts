@@ -15,6 +15,8 @@ import {
 import { type StartTag } from "parse5-sax-parser";
 import { type Token } from "parse5";
 import { type RWOpts } from "../types";
+// capture-player: 2026-11-15 に足した（CAPTURE-147）
+import { frameSnapshotTarget } from "../capturePlayerSnapshot";
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -223,9 +225,31 @@ export class HTMLRewriter {
       tag.tagName = newTag;
     };
 
+    // capture-player: 2026-11-15 に足した（CAPTURE-147）。BrowserHive の写しの文書の枠（frame・iframe）が
+    // data-browserhive-snapshot で子の写しを名指していれば、枠を子の写しで開く。src を子の写しの URI の再生の URL に
+    // する（Rewriter.rewriteUrl は urn: を forceAbs なしでは元のまま返す）。属性はそのまま残る（data-* は http の値
+    // だけを書き換える）。写しでない文書（記録した元の文書）の枠は、上流のまま記録の src で開く。
+    const frameSnapshot = frameSnapshotTarget(
+      this.rewriter.responseUrl,
+      tagName,
+      tag.attrs,
+    );
+    const frameSnapshotSrc = frameSnapshot
+      ? this.rewriteUrl(rewriter, frameSnapshot, true, attrRules["src"])
+      : null;
+    if (frameSnapshotSrc && !tag.attrs.some((a) => a.name === "src")) {
+      tag.attrs.push({ name: "src", value: frameSnapshotSrc });
+    }
+
     for (const attr of tag.attrs) {
       const name = attr.name || "";
       const value = attr.value || "";
+
+      // capture-player: 2026-11-15 に足した（CAPTURE-147）
+      if (frameSnapshotSrc && name === "src") {
+        attr.value = frameSnapshotSrc;
+        continue;
+      }
 
       // js attrs with javascript:
       if (value.startsWith("javascript:")) {

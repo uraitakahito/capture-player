@@ -48,6 +48,8 @@ import Split from "split.js";
 import type { FavIconEventDetail, ItemType, URLResource } from "./types";
 // capture-player: 2026-11-14 に足した（CAPTURE-378）
 import type { RandomCounts } from "./types";
+// capture-player: 2026-11-15 に足した（CAPTURE-147）
+import type { ScriptMarks } from "./types";
 import type { Replay } from "./replay";
 import { ifDefined } from "lit/directives/if-defined.js";
 
@@ -226,6 +228,13 @@ class Item extends LitElement {
 
   @state()
   private showRandomDetail = false;
+
+  // capture-player: 2026-11-15 に足した（CAPTURE-147）。写しの文書でスクリプトが足した要素の数（replay.ts が送る）
+  @state()
+  private replayScriptMarks: ScriptMarks | null = null;
+
+  @state()
+  private showScriptMarksDetail = false;
 
   private splitter: Split.Instance | null = null;
 
@@ -939,8 +948,10 @@ class Item extends LitElement {
         font-weight: 600;
       }
 
-      /* capture-player: 2026-11-14 に足した（CAPTURE-378） */
-      .random-badge {
+      /* capture-player: 2026-11-14 に足した（CAPTURE-378）。2026-11-15（CAPTURE-147）: スクリプトが足した要素の
+         印も同じ形。字と地の色を両方決める（:host は color-scheme が light dark なので、決めないとダークで字が白） */
+      .random-badge,
+      .script-marks-badge {
         all: unset;
         cursor: pointer;
         display: inline-flex;
@@ -956,11 +967,13 @@ class Item extends LitElement {
         white-space: nowrap;
       }
 
-      .random-badge:focus-visible {
+      .random-badge:focus-visible,
+      .script-marks-badge:focus-visible {
         outline: 2px solid var(--sl-color-blue-500);
       }
 
-      .random-detail {
+      .random-detail,
+      .script-marks-detail {
         font-variant-numeric: tabular-nums;
       }
 
@@ -1183,6 +1196,13 @@ class Item extends LitElement {
                     // capture-player: 2026-11-14 に足した（CAPTURE-378）
                     this.replayRandom = e.detail;
                     this.showRandomDetail = false;
+                  }}"
+                  @capture-player-script-marks="${(
+                    e: CustomEvent<ScriptMarks | null>,
+                  ) => {
+                    // capture-player: 2026-11-15 に足した（CAPTURE-147）
+                    this.replayScriptMarks = e.detail;
+                    this.showScriptMarksDetail = false;
                   }}"
                   @cancel-click-download="${() =>
                     (this.clickToDownloadMode = false)}"
@@ -1630,6 +1650,33 @@ class Item extends LitElement {
     </button>`;
   }
 
+  // capture-player: 2026-11-15 に足した（CAPTURE-147）。BrowserHive の写しの文書（枠の中の子の写しも足す）に、
+  // スクリプトが足した要素（[data-capture-script]）が 1 つでも在るときだけ出す。押すと id ごとの数
+  private renderScriptMarksBadge() {
+    const m = this.replayScriptMarks;
+    if (!m || m.count <= 0) {
+      return nothing;
+    }
+    const detail = [...m.byId]
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([id, n]) => `${id || "(no id)"} ${n}`)
+      .join(" · ");
+    return html`<button
+      type="button"
+      id="script-marks-badge"
+      class="script-marks-badge"
+      title="${detail}"
+      aria-expanded="${this.showScriptMarksDetail ? "true" : "false"}"
+      @click="${() =>
+        (this.showScriptMarksDetail = !this.showScriptMarksDetail)}"
+    >
+      Script-added elements:
+      ${m.count}${this.showScriptMarksDetail
+        ? html`<span class="script-marks-detail">${detail}</span>`
+        : nothing}
+    </button>`;
+  }
+
   private renderTimestamp() {
     const timestampStrs: { date: string; label: string }[] = [];
     this.multiTs?.forEach((ts) => {
@@ -1651,8 +1698,9 @@ class Item extends LitElement {
       ? dateTimeFormatter.format(tsToDate(this.ts) as Date)
       : "";
     // capture-player: 2026-11-14 に改変（CAPTURE-378）。時刻の前に、乱数の控えを返したことの印
+    // 2026-11-15（CAPTURE-147）: その後ろに、写しの文書でスクリプトが足した要素の数
     return html`<div id="datetime" class="control is-hidden-mobile loc-overlay">
-      ${this.renderRandomBadge()}
+      ${this.renderRandomBadge()} ${this.renderScriptMarksBadge()}
       ${timestampStrs.length > 1
         ? html`
             <sl-dropdown placement="top-end" hoist>

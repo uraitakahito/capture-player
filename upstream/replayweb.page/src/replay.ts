@@ -10,6 +10,8 @@ import type { ReplayLoadingDetail, TabNavEvent } from "./events";
 import type { RandomCounts } from "./types";
 // capture-player: 2026-11-14 に足した（CAPTURE-422）
 import type { CaptureEnvInfo } from "./types";
+// capture-player: 2026-11-15 に足した（CAPTURE-147）
+import type { ScriptMarks } from "./types";
 import { keyed } from "lit/directives/keyed.js";
 
 /**
@@ -24,6 +26,7 @@ import { keyed } from "lit/directives/keyed.js";
  * @fires cancel-click-download
  * @fires update-download-res-url
  * @fires capture-player-random RandomCounts | null (capture-player: 2026-11-14 に足した)
+ * @fires capture-player-script-marks ScriptMarks | null (capture-player: 2026-11-15 に足した)
  */
 class Replay extends LitElement {
   @property({ type: Object })
@@ -95,6 +98,15 @@ class Replay extends LitElement {
     { counts: RandomCounts; doc: Document | null }
   >();
   private randomSum: RandomCounts | null = null;
+
+  // capture-player: 2026-11-15 に足した（CAPTURE-147）。BrowserHive の写しの文書（主・枠の中の子の写しとも）が送る、
+  // スクリプトが足した要素の数。乱数の数と同じく、送った窓ごとに送った文書と一緒に持ち、文書が替わった窓の数は
+  // 捨てる。どの文書も自分の中の要素だけを数えるので、足しても同じ要素を 2 度数えない
+  private readonly marksByWindow = new Map<
+    Window,
+    { marks: ScriptMarks; doc: Document | null }
+  >();
+  private marksSum: ScriptMarks | null = null;
 
   // capture-player: 2026-11-14 に足した（CAPTURE-422）。撮った時の窓で再生する。
   // - 枠を開く前に、service worker に文書の撮った時の環境を訊く（api の bh-env）。答えが来るまで枠を描かない
@@ -239,6 +251,9 @@ class Replay extends LitElement {
       // capture-player: 2026-11-14 に足した（CAPTURE-378）。別の頁を開いたら、前の文書の数を捨てる
       this.randomByWindow.clear();
       this.publishRandom();
+      // capture-player: 2026-11-15 に足した（CAPTURE-147）
+      this.marksByWindow.clear();
+      this.publishMarks();
 
       const detail = { title: "Archived Page", replayTitle: false };
       this.dispatchEvent(
@@ -322,6 +337,16 @@ class Replay extends LitElement {
       return;
     }
 
+    // capture-player: 2026-11-15 に足した（CAPTURE-147）。スクリプトが足した要素の数も、枠の中の文書から届く。
+    // UI で使い、親の窓へは渡さない
+    if (iframe && event.data?.wb_type === "bh-script-marks") {
+      const source = event.source as Window | null;
+      if (source && this.isInReplay(source, iframe)) {
+        this.onScriptMarks(source, event.data);
+      }
+      return;
+    }
+
     if (iframe && event.source === iframe.contentWindow) {
       if (
         event.data.wb_type === "load" ||
@@ -336,6 +361,8 @@ class Replay extends LitElement {
         this.clearLoading(iframe);
         // capture-player: 2026-11-14 に足した（CAPTURE-378）。文書が替わった窓の数を捨てる
         this.pruneRandom();
+        // capture-player: 2026-11-15 に足した（CAPTURE-147）
+        this.pruneMarks();
 
         if (event.data.icons) {
           const icons = event.data.icons;
@@ -432,6 +459,68 @@ class Replay extends LitElement {
     this.randomSum = next;
     this.dispatchEvent(
       new CustomEvent<RandomCounts | null>("capture-player-random", {
+        bubbles: true,
+        composed: true,
+        detail: next,
+      }),
+    );
+  }
+
+  // capture-player: 2026-11-15 に足した（CAPTURE-147）。形を確かめてから、送った窓の数として持つ
+  private onScriptMarks(win: Window, data: Record<string, unknown>) {
+    const { count, byId } = data;
+    if (
+      typeof count !== "number" ||
+      !Number.isInteger(count) ||
+      count < 0 ||
+      !byId ||
+      typeof byId !== "object"
+    ) {
+      return;
+    }
+    const ids = new Map<string, number>();
+    for (const [id, n] of Object.entries(byId)) {
+      if (typeof n !== "number" || !Number.isInteger(n) || n <= 0) {
+        return;
+      }
+      ids.set(id, n);
+    }
+    this.marksByWindow.set(win, {
+      marks: { count, byId: ids },
+      doc: this.windowDocument(win),
+    });
+    this.pruneMarks();
+  }
+
+  // capture-player: 2026-11-15 に足した（CAPTURE-147）。閉じた窓・別の文書に替わった窓の数を捨てる
+  private pruneMarks() {
+    for (const [win, entry] of this.marksByWindow) {
+      const doc = this.windowDocument(win);
+      if (!doc || doc !== entry.doc) {
+        this.marksByWindow.delete(win);
+      }
+    }
+    this.publishMarks();
+  }
+
+  // capture-player: 2026-11-15 に足した（CAPTURE-147）。窓ごとの数を足して item.ts の再生の帯へ（変わった時だけ）
+  private publishMarks() {
+    let next: ScriptMarks | null = null;
+    for (const { marks } of this.marksByWindow.values()) {
+      next ??= { count: 0, byId: new Map() };
+      next.count += marks.count;
+      for (const [id, n] of marks.byId) {
+        next.byId.set(id, (next.byId.get(id) ?? 0) + n);
+      }
+    }
+    const key = (m: ScriptMarks | null) =>
+      m ? JSON.stringify([m.count, [...m.byId].sort()]) : "null";
+    if (key(next) === key(this.marksSum)) {
+      return;
+    }
+    this.marksSum = next;
+    this.dispatchEvent(
+      new CustomEvent<ScriptMarks | null>("capture-player-script-marks", {
         bubbles: true,
         composed: true,
         detail: next,

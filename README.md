@@ -1,7 +1,7 @@
 # capture-player
 
 The Web Capture viewer for BrowserHive WACZ files: WACZ files that conform to the
-[BrowserHive WACZ Profile](https://uraitakahito.github.io/browserhive-specs/wacz-profile/1.26.0/).
+[BrowserHive WACZ Profile](https://uraitakahito.github.io/browserhive-specs/wacz-profile/1.27.0/).
 
 capture-player is a **modified version** of
 [ReplayWeb.page](https://github.com/webrecorder/replayweb.page) 2.5.0 and
@@ -22,6 +22,23 @@ Everything that differs from upstream is listed in [NOTICE.md](NOTICE.md). In sh
   signature by whether it matched, and an unsigned archive as "not signed".
 - In the page list, a BrowserHive snapshot shows its stage ("Snapshot after
   load") and the original document URL instead of its `urn:`.
+- A BrowserHive snapshot opens its frames on the snapshots BrowserHive took of
+  them ([BrowserHive WARC Profile 1.5.0](https://uraitakahito.github.io/browserhive-warc-spec/1.5.0/#frame-snapshots),
+  [BrowserHive WACZ Profile 1.27.0](https://uraitakahito.github.io/browserhive-specs/wacz-profile/1.27.0/#snapshot-frames)).
+  In a snapshot, a `<frame>` or `<iframe>` keeps its original `src` and names its
+  child snapshot (`urn:browserhive:frame-snapshot:`) in `data-browserhive-snapshot`.
+  Unmodified ReplayWeb.page does not read the attribute and shows the recorded
+  document in the frame, so the frame shows the page as it loaded, not as it was
+  when the snapshot was taken. capture-player opens the frame on the child
+  snapshot, and so on for frames inside a child snapshot. A recorded document
+  (not a snapshot) opens its frames as upstream does. In a replay bundle, a
+  snapshot opens from its row in the page list, which names its WACZ, and its
+  child snapshots are read from the same WACZ.
+- When a snapshot, or a child snapshot in one of its frames, holds elements a
+  capture script added (`data-capture-script`, the attribute the scripts in
+  [capture-scripts](https://github.com/uraitakahito/capture-scripts) put on what
+  they add), the replay bar says "Script-added elements: N", with the count per
+  script on hover and click.
 - The page list shows BrowserHive's stage screenshots. Upstream only looks for
   `urn:thumbnail:<url>`, which a BrowserHive WACZ does not have, so it showed
   no image. A document row shows the after-load screenshot

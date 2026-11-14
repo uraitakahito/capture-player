@@ -92,3 +92,29 @@ WACZ Profile 1.26.0）。2026-11-14 に保管庫から写した（撮ったの�
   無い回）
 
 合本の一覧は、日付の見出しを押しても並びが変わらない（2026-11-15 に確かめた。一覧の並べ替え（`pages.ts`）は上流のまま）。並べ替えの試験は 1 本の WACZ で見る。
+
+## 子フレームの写し（`frame-snapshots*.wacz`・`bucket/frame-snapshots/`・CAPTURE-147）
+
+`frame-snapshots.test.ts` が使う。capture-fixtures v0.38.0 の頁を、手元で起こした capture-fixtures（v0.38.0 のタグから build・
+`127.0.0.1:19471`）と、手元の BrowserHive（v31.2.0 のタグから build した写し。`datapackage.json` の版は `31.2.0+local`。
+ループバックを撮れるように 1 行だけ替えた。Chrome for Testing 156）で、2026-11-14 20:47〜20:52 UTC に 1 本ずつ撮った物。
+保管庫もコンテナも使っていない。頁は `http://127.0.0.1:19471/...`。どれも 1280×800・DPR [1]・WACZ Profile 1.27.0。
+
+取り込みには、その場のスクリプトを 1 本（id `marker`）付けた。枠を前順にたどり、名前が `right` の枠の文書の body に
+`<p data-capture-script="marker">frame snapshot marker</p>` を、`menu`・`left` の枠の文書に
+`<p data-capture-script="menu-marker">menu snapshot marker</p>` を足す。印は after-behaviors の子の写しにだけ在り、記録した
+元の文書（response）と after-load の写しには無い。スクリプトの中身は各 WACZ の `behaviors/custom.jsonl` に残っている。
+
+| ファイル                                                            | 頁                       | 子の写し（after-behaviors）                                                                 |
+| ------------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------- |
+| `frame-snapshots.wacz`・`bucket/frame-snapshots/portrait.wacz`      | `/portrait/`             | 1 `menu.htm`（menu-marker）・2 `top.htm`（marker。絵 `mona.jpg` を参照）                    |
+| `frame-snapshots-nested.wacz`・`bucket/frame-snapshots/nested.wacz` | `/links/frameset-nested` | 1 `/links/frameset`・2 `/links/frame/menu`（menu-marker）・3 `/links/frame/empty`（marker） |
+| `frame-snapshots-iframe.wacz`・`bucket/frame-snapshots/iframe.wacz` | `/links/iframe`          | 1 `/links/frame/menu`（iframe・menu-marker）                                                |
+| `bucket/frame-snapshots/frameset.wacz`                              | `/links/frameset`        | 1 `/links/frame/menu`（menu-marker）・2 `/links/frame/empty`（marker）                      |
+
+4 本とも wacz-validator v0.51.0 の `--profile browserhive` で failed 0（`browserhive/frame-snapshots` を含む）。子の写しの
+metadata の `document-record` は、どれも同じ WARC の子の文書の response の `WARC-Record-ID` を名指す。
+
+`bucket/org/test/crawls/00000000-0000-4000-8000-000000000147/r1/` の `pages.json`・`replay.json` が 4 本を束ねる（capture-ledger が
+書く形に、4 本の `pages/pages.jsonl` から組んだ物。写しの行は `keys` が空）。写しの行は頁の問いでは見つからないので、試験は頁の一覧の
+リンクと同じく `waczhash` で WACZ を名指して開く。名前の順で `portrait.wacz` は 4 番目。
