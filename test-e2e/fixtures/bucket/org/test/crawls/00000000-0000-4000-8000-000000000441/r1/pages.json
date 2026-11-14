@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "crawlId": "00000000-0000-4000-8000-000000000441",
+  "rev": 1,
+  "pages": [
+    {
+      "id": "7555138f-d039-428a-a760-bfff7664db17",
+      "url": "http://capture-fixtures-1-a.browserhive:8080/random/pick",
+      "ts": "2026-11-14T08:47:38.271Z",
+      "title": "pick 871005",
+      "filename": "twice.wacz",
+      "depth": 0,
+      "stage": null,
+      "keys": ["http://capture-fixtures-1-a.browserhive:8080/random/pick"]
+    },
+    {
+      "id": "7555138f-d039-428a-a760-bfff7664db17-after-load",
+      "url": "urn:browserhive:snapshot:after-load:http://capture-fixtures-1-a.browserhive:8080/random/pick",
+      "ts": "2026-11-14T08:47:39.653Z",
+      "title": "pick 871005",
+      "filename": "twice.wacz",
+      "depth": 0,
+      "stage": "after-load",
+      "keys": []
+    },
+    {
+      "id": "3ebfb515-6261-4ead-b9ef-23529560f423",
+      "url": "http://capture-fixtures-1-a.browserhive:8080/random/pick",
+      "ts": "2026-11-14T08:47:31.894Z",
+      "title": "pick 960463",
+      "filename": "pick-no-shot.wacz",
+      "depth": 0,
+      "stage": null,
+      "keys": ["http://capture-fixtures-1-a.browserhive:8080/random/pick"]
+    },
+    {
+      "id": "3ebfb515-6261-4ead-b9ef-23529560f423-after-load",
+      "url": "urn:browserhive:snapshot:after-load:http://capture-fixtures-1-a.browserhive:8080/random/pick",
+      "ts": "2026-11-14T08:47:32.990Z",
+      "title": "pick 960463",
+      "filename": "pick-no-shot.wacz",
+      "depth": 0,
+      "stage": "after-load",
+      "keys": []
+    }
+  ]
+}

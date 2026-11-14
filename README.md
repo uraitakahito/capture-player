@@ -22,6 +22,15 @@ Everything that differs from upstream is listed in [NOTICE.md](NOTICE.md). In sh
   signature by whether it matched, and an unsigned archive as "not signed".
 - In the page list, a BrowserHive snapshot shows its stage ("Snapshot after
   load") and the original document URL instead of its `urn:`.
+- The page list shows BrowserHive's stage screenshots. Upstream only looks for
+  `urn:thumbnail:<url>`, which a BrowserHive WACZ does not have, so it showed
+  no image. A document row shows the after-load screenshot
+  (`urn:browserhive:screenshot:after-load:<url>`), and a snapshot row the
+  screenshot of the same stage. Without one, a row is shown as upstream shows
+  it (`urn:thumbnail:`, then the favicon or "No image"). In a replay bundle, a
+  row shows only a screenshot from its own WACZ, never one from another
+  capture of the same URL. A document whose page redirected before it loaded
+  gets no screenshot in its row (the screenshot is named by the URL it loaded).
 - A document whose body the archive did not keep (`WARC-Truncated`) shows a
   notice with the reason instead of an empty page.
 - Archive Info has a BrowserHive field: whether every body was kept, what was
