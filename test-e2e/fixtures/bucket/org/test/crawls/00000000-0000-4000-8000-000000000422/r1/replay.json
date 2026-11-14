@@ -1,0 +1,39 @@
+{
+  "title": "viewport (CAPTURE-422)",
+  "resources": [
+    {
+      "name": "picture-width.wacz",
+      "path": "/wacz/viewport/picture-width.wacz",
+      "hash": "sha256:ea9d53dab567c2753bba56ff650c3ebcbd1e1e4c9399d816c04f470e2bed7e91",
+      "crawlId": "00000000-0000-4000-8000-000000000422"
+    },
+    {
+      "name": "narrow.wacz",
+      "path": "/wacz/viewport/narrow.wacz",
+      "hash": "sha256:508608150d5d509bb66f20375f2b70929ecb8fdab1fe92a0dde226076744a84d",
+      "crawlId": "00000000-0000-4000-8000-000000000422"
+    }
+  ],
+  "initialPages": [
+    {
+      "id": "1df88bac-b91e-4714-9187-19a35513c157",
+      "url": "http://127.0.0.1:19461/viewport/picture-width",
+      "ts": "2026-11-14T12:00:25.285Z",
+      "title": "picture-width",
+      "filename": "picture-width.wacz",
+      "isSeed": true,
+      "crawl_id": "00000000-0000-4000-8000-000000000422"
+    },
+    {
+      "id": "9f78e975-6e79-4e14-8095-15d66d948fbb",
+      "url": "http://127.0.0.1:19461/viewport/picture-width",
+      "ts": "2026-11-14T12:00:41.370Z",
+      "title": "picture-width",
+      "filename": "narrow.wacz",
+      "isSeed": false,
+      "crawl_id": "00000000-0000-4000-8000-000000000422"
+    }
+  ],
+  "totalPages": 2,
+  "pagesQueryUrl": "/q/org/test/crawls/00000000-0000-4000-8000-000000000422/r1/pages"
+}

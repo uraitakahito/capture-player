@@ -104,3 +104,12 @@ export type RandomCounts = {
   returned: number;
   fallback: number;
 };
+
+// capture-player: 2026-11-14 に足した（CAPTURE-422）。再生する文書の撮った時の窓（CSS の px）と DPR。
+// dpr はその文書の値、dprs は取り込みが読み込んだ DPR の全部（順のまま）
+export type CaptureEnvInfo = {
+  width: number;
+  height: number;
+  dpr: number;
+  dprs: number[];
+};

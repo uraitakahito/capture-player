@@ -1,4 +1,4 @@
-import { LitElement, html, css, type PropertyValues } from "lit";
+import { LitElement, html, css, nothing, type PropertyValues } from "lit";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { property, query, state } from "lit/decorators.js";
 
@@ -8,6 +8,8 @@ import type { ItemType } from "./types";
 import type { ReplayLoadingDetail, TabNavEvent } from "./events";
 // capture-player: 2026-11-14 に足した（CAPTURE-378）
 import type { RandomCounts } from "./types";
+// capture-player: 2026-11-14 に足した（CAPTURE-422）
+import type { CaptureEnvInfo } from "./types";
 import { keyed } from "lit/directives/keyed.js";
 
 /**
@@ -94,15 +96,58 @@ class Replay extends LitElement {
   >();
   private randomSum: RandomCounts | null = null;
 
+  // capture-player: 2026-11-14 に足した（CAPTURE-422）。撮った時の窓で再生する。
+  // - 枠を開く前に、service worker に文書の撮った時の環境を訊く（api の bh-env）。答えが来るまで枠を描かない
+  // - 文書も環境を知らせる（wb_type: "bh-env"）。枠と食い違えば、枠を合わせて 1 度だけ読み直す
+  //   （頁の JS が読み込みの時に選んだ物は、後から枠を替えても替わらないため）
+  // - 見せ方は 3 つ: capture（既定。撮った時の窓を見る人の窓に収める）・actual（同じ枠を等倍で）・window（上流と同じ）。
+  //   開くたびに capture から始める（覚えない）
+  @state()
+  private captureEnv: CaptureEnvInfo | null = null;
+
+  @state()
+  private captureEnvFor: string | null = null;
+
+  // 枠は about:blank で先に置き、zoom と大きさが枠の中の窓に効いてから（描画の 2 フレームの後）頁の URL を渡す。
+  // 作ったばかりの枠に直に URL を渡すと、頁は zoom の効く前の窓（幅が zoom 倍・DPR が画面のまま）で読み始め、
+  // その窓の版を一度求める（Chrome 156 で実測）
+  @state()
+  private frameReadyFor: string | null = null;
+
+  @state()
+  private viewMode: "capture" | "actual" | "window" = "capture";
+
+  @state()
+  private containerSize = { width: 0, height: 0 };
+
+  private captureReloadedFor: string | null = null;
+
+  private containerObserver: ResizeObserver | null = null;
+
+  private observedContainer: Element | null = null;
+
+  private screenDprQuery: MediaQueryList | null = null;
+
+  private readonly onScreenDprChange = () => {
+    this.watchScreenDpr();
+    this.requestUpdate();
+  };
+
   disconnectedCallback(): void {
     super.disconnectedCallback();
 
     if (this._loadPoll) {
       window.clearInterval(this._loadPoll);
     }
+
+    // capture-player: 2026-11-14 に足した（CAPTURE-422）
+    this.containerObserver?.disconnect();
+    this.screenDprQuery?.removeEventListener("change", this.onScreenDprChange);
   }
 
   firstUpdated() {
+    // capture-player: 2026-11-14 に足した（CAPTURE-422）。見る人の画面の DPR が替わったら（外のモニタへ移す・拡大）枠を計算し直す
+    this.watchScreenDpr();
     window.addEventListener("message", (event) => this.onReplayMessage(event));
     // TODO: Fix this the next time the file is edited.
     // eslint-disable-next-line @typescript-eslint/promise-function-async
@@ -183,6 +228,12 @@ class Replay extends LitElement {
   }
 
   updated(changedProperties: PropertyValues<this>) {
+    // capture-player: 2026-11-14 に足した（CAPTURE-422）
+    this.observeContainer();
+    if (this.iframeUrl && changedProperties.has("iframeUrl")) {
+      void this.lookupCaptureEnv(this.iframeUrl);
+    }
+
     if (this.iframeUrl && changedProperties.has("iframeUrl")) {
       this.waitForLoad();
       // capture-player: 2026-11-14 に足した（CAPTURE-378）。別の頁を開いたら、前の文書の数を捨てる
@@ -252,6 +303,14 @@ class Replay extends LitElement {
 
   onReplayMessage(event: MessageEvent) {
     const iframe = this.renderRoot.querySelector("iframe");
+
+    // capture-player: 2026-11-14 に足した（CAPTURE-422）。撮った時の環境は、再生の一番上の文書の物だけを使う
+    if (iframe && event.data?.wb_type === "bh-env") {
+      if (event.source === iframe.contentWindow) {
+        void this.onCaptureEnv(iframe, event.data);
+      }
+      return;
+    }
 
     // capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の控えの数は、再生の中の frame の文書からも届く。
     // UI で使い、親の窓へは渡さない
@@ -380,6 +439,223 @@ class Replay extends LitElement {
     );
   }
 
+  // capture-player: 2026-11-14 に足した（CAPTURE-422）。答えの形を確かめてから使う
+  private static toCaptureEnv(v: unknown): CaptureEnvInfo | null {
+    if (!v || typeof v !== "object") {
+      return null;
+    }
+    const { width, height, dpr, dprs } = v as Record<string, unknown>;
+    const positive = (n: unknown): n is number =>
+      typeof n === "number" && Number.isFinite(n) && n > 0;
+    if (
+      !positive(width) ||
+      !positive(height) ||
+      !positive(dpr) ||
+      !Array.isArray(dprs) ||
+      !dprs.every(positive)
+    ) {
+      return null;
+    }
+    return { width, height, dpr, dprs: dprs as number[] };
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-422）。枠を開く前に、文書の撮った時の環境を service worker に訊く
+  private async lookupCaptureEnv(forUrl: string) {
+    let env: CaptureEnvInfo | null = null;
+    if (this.collInfo?.apiPrefix && this.url) {
+      const abort = new AbortController();
+      const timer = window.setTimeout(() => abort.abort(), 5000);
+      try {
+        const query = new URLSearchParams({ url: this.url, ts: this.ts || "" });
+        const resp = await fetch(`${this.collInfo.apiPrefix}/bh-env?${query.toString()}`, {
+          signal: abort.signal,
+        });
+        if (resp.ok) {
+          env = Replay.toCaptureEnv(((await resp.json()) as { env?: unknown }).env);
+        }
+      } catch (_) {
+        // 訊けなければ、文書の知らせ（bh-env）を待つ
+      } finally {
+        window.clearTimeout(timer);
+      }
+    }
+    if (this.iframeUrl !== forUrl) {
+      return;
+    }
+    this.captureEnv = env;
+    this.captureEnvFor = forUrl;
+    await this.updateComplete;
+    await Replay.afterLayout();
+    if (this.iframeUrl === forUrl) {
+      this.frameReadyFor = forUrl;
+    }
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-422）。描画の 2 フレームの後（style が枠に効いた後）
+  private static afterLayout(): Promise<void> {
+    return new Promise((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-422）。文書が知らせた環境が枠と違えば、枠を合わせて 1 度だけ読み直す
+  private async onCaptureEnv(iframe: HTMLIFrameElement, data: unknown) {
+    const env = Replay.toCaptureEnv(data);
+    const prev = this.captureEnv;
+    if (
+      !env ||
+      (prev &&
+        prev.width === env.width &&
+        prev.height === env.height &&
+        prev.dpr === env.dpr &&
+        prev.dprs.join() === env.dprs.join())
+    ) {
+      return;
+    }
+    this.captureEnv = env;
+    if (this.viewMode === "window") {
+      return;
+    }
+    let href = "";
+    try {
+      href = iframe.contentWindow?.location.href ?? "";
+    } catch (_) {
+      return;
+    }
+    if (!href || this.captureReloadedFor === href) {
+      return;
+    }
+    this.captureReloadedFor = href;
+    await this.updateComplete;
+    await Replay.afterLayout();
+    this.waitForLoad();
+    iframe.contentWindow?.location.reload();
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-422）。枠の大きさが替わる見せ方の切り替えは、読み直して頁の JS に選び直させる
+  private async setViewMode(mode: "capture" | "actual" | "window") {
+    const reload = (mode === "window") !== (this.viewMode === "window");
+    this.viewMode = mode;
+    if (!reload) {
+      return;
+    }
+    await this.updateComplete;
+    await Replay.afterLayout();
+    const iframe = this.renderRoot.querySelector("iframe");
+    this.waitForLoad();
+    iframe?.contentWindow?.location.reload();
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-422）
+  private observeContainer() {
+    const container = this.renderRoot.querySelector(".iframe-container");
+    if (container === this.observedContainer) {
+      return;
+    }
+    this.containerObserver?.disconnect();
+    this.observedContainer = container;
+    if (!container) {
+      return;
+    }
+    this.containerObserver ??= new ResizeObserver((entries) => {
+      const box = entries[entries.length - 1]?.contentRect;
+      if (
+        box &&
+        (box.width !== this.containerSize.width ||
+          box.height !== this.containerSize.height)
+      ) {
+        this.containerSize = { width: box.width, height: box.height };
+      }
+    });
+    this.containerObserver.observe(container);
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-422）
+  private watchScreenDpr() {
+    this.screenDprQuery?.removeEventListener("change", this.onScreenDprChange);
+    this.screenDprQuery = window.matchMedia(
+      `(resolution: ${String(window.devicePixelRatio || 1)}dppx)`,
+    );
+    this.screenDprQuery.addEventListener("change", this.onScreenDprChange);
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-422）。撮った時の窓の見え方の数。見る倍率 shown は CSS の px あたり
+  private captureLayout(env: CaptureEnvInfo) {
+    const { width, height } = this.containerSize;
+    const fit =
+      width > 0 && height > 0
+        ? Math.min(width / env.width, height / env.height)
+        : 1;
+    const shown = this.viewMode === "actual" ? 1 : fit;
+    // 枠の中の DPR を撮った時の値にする。zoom を掛けた枠は、見る人の画面の px で env.dpr 倍の細かさで描かれる
+    const zoom = env.dpr / (window.devicePixelRatio || 1);
+    return {
+      fit,
+      shown,
+      zoom,
+      scale: shown / zoom,
+      left: Math.max(0, (width - env.width * shown) / 2),
+    };
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-422）
+  private renderCaptureBar() {
+    if (!this.iframeUrl || this.captureEnvFor !== this.iframeUrl) {
+      return nothing;
+    }
+    const env = this.captureEnv;
+    if (!env) {
+      return html`<div class="capture-bar" id="capture-bar">
+        <span>No capture window recorded — shown in your window</span>
+      </div>`;
+    }
+    if (this.viewMode === "window") {
+      return html`<div class="capture-bar is-window" id="capture-bar">
+        <span>Your window — images and layout may differ from the capture</span>
+        <button @click=${() => void this.setViewMode("capture")}>
+          Use capture window
+        </button>
+      </div>`;
+    }
+    const dpr =
+      env.dprs.length > 1
+        ? `DPR ${String(env.dpr)} (captured at ${env.dprs.join(", ")})`
+        : `DPR ${String(env.dpr)}`;
+    const size =
+      this.viewMode === "actual"
+        ? "actual size"
+        : `scaled to ${String(Math.round(this.captureLayout(env).fit * 100))}%`;
+    return html`<div class="capture-bar" id="capture-bar">
+      <span
+        >Capture window ${env.width}×${env.height} · ${dpr} — ${size}</span
+      >
+      <button
+        @click=${() =>
+          void this.setViewMode(
+            this.viewMode === "actual" ? "capture" : "actual",
+          )}
+      >
+        ${this.viewMode === "actual" ? "Fit to window" : "Actual size"}
+      </button>
+      <button @click=${() => void this.setViewMode("window")}>
+        Use my window
+      </button>
+    </div>`;
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-422）。枠の入れ物と枠の style。window の見せ方と、環境の無いときは上流のまま
+  private captureFrameStyles(): { box: string; frame: string } | null {
+    const env = this.captureEnv;
+    if (!env || this.viewMode === "window") {
+      return null;
+    }
+    const { shown, zoom, scale, left } = this.captureLayout(env);
+    return {
+      box: `left:${String(left)}px;width:${String(env.width * shown)}px;height:${String(env.height * shown)}px;`,
+      frame: `width:${String(env.width)}px;height:${String(env.height)}px;right:auto;bottom:auto;zoom:${String(zoom)};transform:scale(${String(scale)});transform-origin:0 0;`,
+    };
+  }
+
   // @ts-expect-error [// TODO: Fix this the next time the file is edited.] - TS7006 - Parameter 'event' implicitly has an 'any' type.
   onReAuthed(event) {
     this.reauthWait = (async () => {
@@ -496,6 +772,47 @@ class Replay extends LitElement {
         border: 0px;
       }
 
+      /* capture-player: 2026-11-14 に足した（CAPTURE-422）。撮った時の窓の 1 行と、枠の入れ物 */
+      .capture-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5em;
+        padding: 2px 8px;
+        font-size: 12px;
+        line-height: 1.6;
+        background: #eef0f8;
+        color: #1f2330;
+        border-bottom: 1px solid #d8dbe6;
+      }
+      .capture-bar.is-window {
+        background: #fdf1dc;
+      }
+      .capture-bar button {
+        font-size: 12px;
+        padding: 0 8px;
+        border: 1px solid #b9bfd0;
+        border-radius: 999px;
+        background: #fff;
+        cursor: pointer;
+      }
+      .iframe-container.capture-mode {
+        flex: 1;
+        min-height: 0;
+        height: auto;
+        overflow: auto;
+      }
+      .iframe-container.capture-mode.is-actual {
+        background: #f6f7fb;
+      }
+      .capture-frame {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+
       .iframe-main {
         position: absolute;
         top: 0px;
@@ -573,8 +890,20 @@ class Replay extends LitElement {
                   : undefined,
               )}"
             ></a>
-            <div part="iframe-container" class="iframe-container">
-              ${keyed(
+            ${this.renderCaptureBar()}
+            <div
+              part="iframe-container"
+              class="iframe-container capture-mode ${this.viewMode === "actual"
+                ? "is-actual"
+                : ""}"
+            >
+              <div
+                class="capture-frame"
+                style=${ifDefined(this.captureFrameStyles()?.box ?? undefined)}
+              >
+              ${this.captureEnvFor !== this.iframeUrl
+                ? nothing
+                : keyed(
                 this.iframeUrlUpdateKey,
                 html`<iframe
                   part="iframe ${this.replayNotFoundError
@@ -585,10 +914,14 @@ class Replay extends LitElement {
                   @message="${this.onReplayMessage}"
                   allow="autoplay 'self'; fullscreen"
                   allowfullscreen
-                  src="${this.iframeUrl}"
+                  src="${this.frameReadyFor === this.iframeUrl
+                    ? this.iframeUrl
+                    : "about:blank"}"
                   title="${title}"
+                  style=${ifDefined(this.captureFrameStyles()?.frame ?? undefined)}
                 ></iframe>`,
               )}
+              </div>
               ${this.showAuth
                 ? html`
                     <div class="iframe-main modal-bg">

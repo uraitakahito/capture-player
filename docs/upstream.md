@@ -19,6 +19,18 @@ capture-player の直しには、見え方を変える物があります。Brows
 replayweb-server では撮った時と違う物を選び直し、capture-player では撮った時に選んだ物を選ぶことがあります。
 2 つのリンクで頁が違って見えるのは、この直しのためで、版の差ではありません。
 
+もう 1 つ、capture-player は BrowserHive WACZ の頁を、撮った時の窓（`datapackage.json` の `browserhive:capture.settings` の
+`viewport` と `devicePixelRatios`）で開きます（CAPTURE-422）。窓の幅・高さ・DPR で絵の版を選ぶ頁は、replayweb-server では
+見る人の窓の版を求めて記録に無いことがあり、capture-player では撮った時の版を求めます。
+
+## 上流の `static/wombat*.js` は配っていない
+
+`upstream/wabac.js/static/wombat.js` と `wombatWorkers.js` は、上流の wabac.js の repo に在る、前に build した写しです
+（`window.devicePixelRatio` を 1 に固定する古い版）。capture-player の build はこれを使いません。再生の頁に配る wombat は、
+`upstream/wabac.js/webpack.config.cjs` の `wombat` の組が npm の `@webrecorder/wombat`（いまは 3.10.7）から作り、
+`sw.js` に束ねます（`wbinfo.pixel_ratio` を `devicePixelRatio` に置く）。`scripts/build-viewer.sh` が配るのは
+`index.html`・`ui.js`・`sw.js` だけです。上流への追随のたびに消し直さなくて済むよう、写しは消さずに置いています（CAPTURE-421）。
+
 ## 新しい版が出たら
 
 `.github/workflows/upstream.yml` が週に 1 回 npm の最新と比べ、新しければ issue を開きます。

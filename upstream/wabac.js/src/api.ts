@@ -4,6 +4,16 @@ import { type SWCollections } from "./swmain";
 import { MultiWACZ } from "./wacz/multiwacz";
 import { ArchiveDB } from "./archivedb";
 import { type PageEntry } from "./types";
+// capture-player: 2026-11-14 に足した（CAPTURE-422）
+import { ArchiveRequest } from "./request";
+import { ArchiveResponse } from "./response";
+import { type Collection } from "./collection";
+import {
+  chooseDocumentDpr,
+  getCaptureEnv,
+  isWaczFileSource,
+} from "./capturePlayerEnv";
+import { getRandomLines, selectRandomDocument } from "./capturePlayerRandom";
 
 // [TODO]
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -74,6 +84,8 @@ class API {
       pages: "c/:coll/pages",
       textIndex: "c/:coll/textIndex",
       deletePage: ["c/:coll/page/:page", "DELETE"],
+      // capture-player: 2026-11-14 に足した（CAPTURE-422）
+      captureEnv: "c/:coll/bh-env",
     };
   }
 
@@ -202,6 +214,25 @@ class API {
           requestJSON,
         );
         return { metadata };
+      }
+
+      // capture-player: 2026-11-14 に足した（CAPTURE-422）。画面が再生の枠を開く前に、その URL と時刻の文書の
+      // 撮った時の環境を訊く。答えは { env: { width, height, dpr, dprs } } か { env: null }（記録が無い・文書が無い）
+      case "captureEnv": {
+        // @ts-expect-error [TODO] - TS4111 - Property 'coll' comes from an index signature, so it must be accessed with ['coll'].
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        const coll = await this.collections.getColl(params.coll);
+        if (!coll) {
+          return { error: "collection_not_found" };
+        }
+        // @ts-expect-error [TODO] - TS4111 - Property '_query' comes from an index signature, so it must be accessed with ['_query'].
+        const query = params._query as URLSearchParams;
+        const url = query.get("url") || "";
+        const ts = query.get("ts") || "";
+        if (!url) {
+          return { env: null };
+        }
+        return { env: await lookupCaptureEnv(coll, url, ts, request, event) };
       }
 
       case "urls": {
@@ -434,3 +465,39 @@ class API {
 }
 
 export { API };
+
+// capture-player: 2026-11-14 に足した（CAPTURE-422）。再生と同じ道で文書の記録を引き、その記録の WACZ の
+// 撮った時の環境を返す。頁の遷移として引くので、合本でも頁の問い合わせでその頁の WACZ を読み込む。
+async function lookupCaptureEnv(
+  coll: Collection,
+  url: string,
+  ts: string,
+  request: Request,
+  event: FetchEvent,
+): Promise<{ width: number; height: number; dpr: number; dprs: number[] } | null> {
+  const store = coll.store;
+  if (!isWaczFileSource(store)) {
+    return null;
+  }
+  const archiveRequest = new ArchiveRequest(url, request, { ts, mod: "mp_" });
+  Object.defineProperty(archiveRequest, "destination", { value: "document" });
+  const response = await coll.store.getResource(archiveRequest, coll.prefix, event, {
+    noRedirect: true,
+  });
+  if (!(response instanceof ArchiveResponse) || !response.waczName) {
+    return null;
+  }
+  const env = await getCaptureEnv(store, response.waczName);
+  if (!env) {
+    return null;
+  }
+  const lines = await getRandomLines(store, response.waczName);
+  const selection = lines ? selectRandomDocument(lines, response.url, response.date) : null;
+  return {
+    width: env.width,
+    height: env.height,
+    dprs: env.dprs,
+    dpr: chooseDocumentDpr(env, response.extraOpts?.pixelRatio, selection?.dpr),
+  };
+}
+
