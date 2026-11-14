@@ -6,6 +6,8 @@ import { wrapCss } from "./misc";
 import rwpLogo from "~assets/brand/replaywebpage-icon-color.svg";
 import type { ItemType } from "./types";
 import type { ReplayLoadingDetail, TabNavEvent } from "./events";
+// capture-player: 2026-11-14 に足した（CAPTURE-378）
+import type { RandomCounts } from "./types";
 import { keyed } from "lit/directives/keyed.js";
 
 /**
@@ -19,6 +21,7 @@ import { keyed } from "lit/directives/keyed.js";
  * @fires replay-loading ReplayLoadingDetail
  * @fires cancel-click-download
  * @fires update-download-res-url
+ * @fires capture-player-random RandomCounts | null (capture-player: 2026-11-14 に足した)
  */
 class Replay extends LitElement {
   @property({ type: Object })
@@ -82,6 +85,11 @@ class Replay extends LitElement {
   private _loadPoll: null | number = null;
 
   private hiliter: HoverHiliter | null = null;
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。再生の一番上の文書が送る、乱数の控えから返した数と、
+  // それを送った文書。文書が替わったら捨てる
+  private randomCounts: RandomCounts | null = null;
+  private randomDoc: Document | null = null;
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
@@ -174,6 +182,8 @@ class Replay extends LitElement {
   updated(changedProperties: PropertyValues<this>) {
     if (this.iframeUrl && changedProperties.has("iframeUrl")) {
       this.waitForLoad();
+      // capture-player: 2026-11-14 に足した（CAPTURE-378）。別の頁を開いたら、前の文書の数を捨てる
+      this.setRandomCounts(null, null);
 
       const detail = { title: "Archived Page", replayTitle: false };
       this.dispatchEvent(
@@ -251,6 +261,13 @@ class Replay extends LitElement {
         this.title = event.data.title || this.title;
         this.replayNotFoundError = event.data.wb_type === "archive-not-found";
         this.clearLoading(iframe);
+        // capture-player: 2026-11-14 に足した（CAPTURE-378）。文書が替わったら、前の文書の数を捨てる
+        if (
+          this.randomCounts &&
+          this.randomDoc !== this.iframeDocument(iframe)
+        ) {
+          this.setRandomCounts(null, null);
+        }
 
         if (event.data.icons) {
           const icons = event.data.icons;
@@ -264,12 +281,50 @@ class Replay extends LitElement {
         }
       } else if (event.data.wb_type === "title") {
         this.title = event.data.title;
+        // capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の控えの数は UI で使い、親の窓へは渡さない
+      } else if (event.data.wb_type === "bh-random") {
+        const { returned, fallback, recorded } = event.data;
+        if (
+          typeof returned === "number" &&
+          typeof fallback === "number" &&
+          typeof recorded === "number"
+        ) {
+          this.setRandomCounts(
+            { returned, fallback, recorded },
+            this.iframeDocument(iframe),
+          );
+        }
       } else {
         const passEvent = { type: event.data.wb_type, ...event.data };
         delete passEvent.wb_type;
         window.parent.postMessage(passEvent);
       }
     }
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）
+  private iframeDocument(iframe: HTMLIFrameElement): Document | null {
+    try {
+      return iframe.contentDocument;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。item.ts の再生の帯が数を出す
+  private setRandomCounts(counts: RandomCounts | null, doc: Document | null) {
+    if (!counts && !this.randomCounts) {
+      return;
+    }
+    this.randomCounts = counts;
+    this.randomDoc = doc;
+    this.dispatchEvent(
+      new CustomEvent<RandomCounts | null>("capture-player-random", {
+        bubbles: true,
+        composed: true,
+        detail: counts,
+      }),
+    );
   }
 
   // @ts-expect-error [// TODO: Fix this the next time the file is edited.] - TS7006 - Parameter 'event' implicitly has an 'any' type.

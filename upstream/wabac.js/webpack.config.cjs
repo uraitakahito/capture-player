@@ -15,6 +15,9 @@ const wombatBuild = {
     wombat: "@webrecorder/wombat/src/wbWombat.js",
     wombatWorkers: "@webrecorder/wombat/src/wombatWorkers.js",
     wombatProxy: "./src/rewrite/proxyinject.ts",
+    // capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の控えを返す script。dist-wombat/ の .txt なので、
+    // 下の raw-loader の規則（パスの dist-wombat/ に当たる）で読める
+    capturePlayerRandom: "./src/rewrite/capturePlayerRandomInject.ts",
   },
   output: {
     path: path.join(__dirname, "dist-wombat"),

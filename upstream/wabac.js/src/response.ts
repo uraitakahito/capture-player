@@ -23,6 +23,8 @@ type ArchiveResponseOpts = {
   noRW?: boolean;
   isLive?: boolean;
   updateTS?: string | null;
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。応答の記録を持つ WACZ の名前
+  waczName?: string | null;
 };
 
 // ===========================================================================
@@ -130,6 +132,8 @@ class ArchiveResponse {
   noRW: boolean;
   isLive: boolean;
   updateTS: string | null;
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。応答の記録を持つ WACZ の名前。乱数の控えをそこから読む
+  waczName: string | null;
 
   clonedResponse: Response | null = null;
 
@@ -144,6 +148,7 @@ class ArchiveResponse {
     noRW = false,
     isLive = false,
     updateTS = null,
+    waczName = null,
   }: ArchiveResponseOpts) {
     this.reader = null;
     this.buffer = null;
@@ -163,6 +168,7 @@ class ArchiveResponse {
     this.noRW = noRW;
     this.isLive = isLive;
     this.updateTS = updateTS;
+    this.waczName = waczName;
   }
 
   async getText(

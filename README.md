@@ -28,6 +28,19 @@ Everything that differs from upstream is listed in [NOTICE.md](NOTICE.md). In sh
   not, the document, snapshots, viewport, signature policy, the BrowserHive
   version and browser, a link to the BrowserHive WACZ Profile, and a notice
   that WebRTC traffic is not stopped.
+- When a BrowserHive WACZ holds the random values the captured page's scripts
+  received (`random/values.jsonl`,
+  [BrowserHive WACZ Profile 1.26.0](https://uraitakahito.github.io/browserhive-specs/wacz-profile/1.26.0/#random-reading)),
+  the n-th call a script makes to `Math.random`, `crypto.getRandomValues` or
+  `crypto.randomUUID` in a replayed document gets the n-th value recorded for
+  that script and function, so a page that picks what to show at random can
+  pick what it picked at capture. A call with no recorded value gets the value
+  unmodified ReplayWeb.page would give it. The values are used only when their
+  sha256 matches `datapackage.json`; `random/recorder.js` is never run. The
+  replay bar says "Random: recorded values" when the page received at least
+  one recorded value, with the counts on hover. This does not make the replay
+  the same as the capture: other calls, and everything else, still come from
+  the replay.
 - It never sends an archive URL to Webrecorder's helper proxy.
 - About says it is a modified version, where its source is, and its license.
 - It does **not** stop a replayed page from sending WebRTC (UDP) traffic. Pages

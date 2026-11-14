@@ -96,3 +96,11 @@ export type FavIconEventDetail = {
     href: string;
   }[];
 };
+
+// capture-player: 2026-11-14 に足した（CAPTURE-378）。再生の一番上の文書が送る、乱数の控えの数。
+// recorded は選んだ文書の行の draw の数、returned は控えの値を返した呼び出し、fallback は返さなかった呼び出し
+export type RandomCounts = {
+  recorded: number;
+  returned: number;
+  fallback: number;
+};

@@ -14,6 +14,11 @@ capture-player は、Webrecorder の [wabac.js](https://github.com/webrecorder/w
 replayweb-server（改変していない ReplayWeb.page を配る、互換の再生）と同じ版にしてあります。
 2 つのリンクの見え方の差が、上流の版の差ではなく capture-player の直しだけになるようにするためです。
 
+capture-player の直しには、見え方を変える物があります。BrowserHive WACZ が乱数の控え（`random/values.jsonl`）を
+持つとき、capture-player は頁のスクリプトに控えの値を返します（CAPTURE-378）。乱数で見せる物を選ぶ頁は、
+replayweb-server では撮った時と違う物を選び直し、capture-player では撮った時に選んだ物を選ぶことがあります。
+2 つのリンクで頁が違って見えるのは、この直しのためで、版の差ではありません。
+
 ## 新しい版が出たら
 
 `.github/workflows/upstream.yml` が週に 1 回 npm の最新と比べ、新しければ issue を開きます。

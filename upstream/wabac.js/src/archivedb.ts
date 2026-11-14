@@ -750,6 +750,8 @@ export class ArchiveDB implements DBStore {
       headers,
       date,
       extraOpts,
+      // capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の控えを、この記録の WACZ から読むため
+      waczName: result.source?.wacz ?? null,
     });
   }
 
