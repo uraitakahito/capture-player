@@ -286,6 +286,47 @@ describe("切り替え", () => {
   });
 });
 
+describe("1 行の色", () => {
+  // 利用者の Mac で、ボタンが白い枠だけで字が見えなかった（2026-11-14）。:host の color-scheme が light dark で、
+  // ダークモードではボタンの字の既定の色が白になり、地も白だったため。字と地の色が違うことを、両方のモードで見る
+  it.each(["light", "dark"] as const)("%s モードでも、切り替えの字は地と違う色", async (scheme) => {
+    const url = `${HOST}/viewport/picture-width`;
+    const context = await browser.createBrowserContext();
+    const page = await context.newPage();
+    await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: scheme }]);
+    await page.setViewport({ width: 1200, height: 900 });
+    const hash = new URLSearchParams({ view: "replay", url, ts: TS["viewport-picture-width"]! });
+    await page.goto(
+      `${origin}/?source=${encodeURIComponent(sourceOf("viewport-picture-width"))}#${hash.toString()}`,
+    );
+    await barText(page, /^Capture window 1280×800/);
+    const colors = await page.evaluate(() => {
+      const find = (root: Document | ShadowRoot): Element | null => {
+        const hit = root.querySelector("#capture-bar");
+        if (hit) return hit;
+        for (const el of root.querySelectorAll("*")) {
+          if (el.shadowRoot) {
+            const inner = find(el.shadowRoot);
+            if (inner) return inner;
+          }
+        }
+        return null;
+      };
+      return [...(find(document)?.querySelectorAll("button") ?? [])].map((b) => {
+        const s = getComputedStyle(b);
+        return {
+          text: (b.textContent ?? "").trim(),
+          color: s.color,
+          background: s.backgroundColor,
+        };
+      });
+    });
+    expect(colors.map((c) => c.text)).toEqual(["Actual size", "Use my window"]);
+    for (const c of colors) expect(c.color, c.text).not.toBe(c.background);
+    await context.close();
+  });
+});
+
 describe("撮った時の窓の記録が無い WACZ", () => {
   it("上流のまま（窓いっぱい・JS の DPR 2）で開き、その旨を 1 行に書く", async () => {
     const { page } = await open(
