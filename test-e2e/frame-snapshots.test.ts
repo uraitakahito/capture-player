@@ -238,9 +238,11 @@ describe("写しの文書の枠", () => {
   });
 
   it("4 本の合本でも、写しの頁の枠を子の写しで開く", async () => {
-    // 合本の写しの行は、頁の一覧のリンクと同じく waczhash で WACZ を名指して開く（pages.json の写しの行は keys が
-    // 空で、頁の問いでは見つからない）。子の写しの要求も同じ WACZ を名指す。名前の順で portrait.wacz は 4 番目
-    // （頁の問いを使わない探し方の先頭 3 本の外）
+    // 合本の写しの行は、頁の一覧のリンクと同じく waczhash で WACZ を名指して開く。名指さないと見つからない ——
+    // replay.json の initialPages（手元の IndexedDB に入る頁）は文書の行だけで、getPagesByUrl で写しの URL に当たらず、
+    // `/q/?url=` も http(s) でない URL を 0 件で返す（keys を足しても同じ）ので、replay は resources の並び（名前の順）の
+    // 先頭 3 本の WACZ しか探さない（multiwacz.ts の getWACZFilesToTry）。portrait.wacz は 4 番目で、その外。子の写しの
+    // 要求も同じ WACZ を名指す
     const source = `/wacz/${PLACE}/replay.json`;
     const page = await open(source, snapshot("after-behaviors", PORTRAIT), {
       waczhash: waczHash("portrait.wacz"),
