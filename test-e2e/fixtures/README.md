@@ -20,7 +20,7 @@
 | ファイル                                                                                   | 元                                                                                                                                                                                                                                                                                   |
 | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `bucket/frames/*.wacz`（6 本）                                                             | capture-fixtures v0.35.0 の `/links/frameset`・`/links/iframe`・`/links/leaf/1`・`/links/leaf/3`・`/links/hub`・`/links/leaf/2` を、手元の BrowserHive（枝 `feat/c245-frame-links` の dist・Chrome for Testing 156）で 1 本ずつ撮った物。2026-11-12。頁は `127.0.0.1:18185` で配った |
-| `bucket/org/test/crawls/00000000-0000-4000-8000-000000000245/r1/pages.json`・`replay.json` | capture-ledger が書く形（`pagesQueryUrl` つき・クロールの id は 1 つ・`isSeed` は frameset だけ）に、6 本から組んだ物                                                                                                                                                                |
+| `bucket/org/test/crawls/00000000-0000-4000-8000-000000000245/r1/pages.json`・`replay.json` | capture-ledger が書く形（`pagesQueryUrl` つき・クロールの id は 1 つ・`isSeed` は frameset だけ）に、6 本から組んだ物。`initialPages` は CAPTURE-456 より前の形（文書の行だけ）のまま                                                                                                |
 
 **並びが要。** 押す先の `leaf-2.wacz` は、`resources` では 6 番目、名前の順では 5 番目に在る。上流の wabac.js（`upstream/wabac.js/src/wacz/multiwacz.ts` の `getWACZFilesToTry`・:1408-1499）は、頁の問い（`pagesQueryUrl`）を使わない要求では、要求が名指す WACZ のクロールに起点の頁（`isSeed`）が在ればその WACZ を（:1480-1488）、無ければ WACZ の一覧の先頭 3 本（`maxFallbackLookups`・:107・:1491-1498）だけを探す。この 3 本は `resources` の順ではなく **WACZ の名前の順** で選ばれる。2026-11-14 に CAPTURE-245 の改変を外して確かめた: いまの見本は frameset・hub・iframe の 3 本を読んで Not Found／`leaf-2.wacz` を名前の順で先頭に来る名前にすると（`resources` では 6 番目のまま）見つかる／名前を替えずに `resources` の 1 番目に動かしても Not Found。同じ context で 2 度目に開いても同じ。`<frame>` の中の遷移は、実測ではこの先頭 3 本の道に入った。名前の順で 3 本以内に置くと直しが無くても見つかり、試験が反証にならない。
 
@@ -84,7 +84,8 @@ WACZ Profile 1.26.0）。2026-11-14 に保管庫から写した（撮ったの�
 | `bucket/thumbnails/twice.wacz`        | `random-twice.wacz` の写し                                                                                                                                                                                                                                                          | 同上                                                                           |
 | `bucket/thumbnails/pick-no-shot.wacz` | `random-pick.wacz` の索引から絵の行を抜いた物（WARC は替えない）                                                                                                                                                                                                                    | 合本で、絵の無い回                                                             |
 
-合本は 2 つ。どちらも capture-ledger が書く形（`initialPages` は文書の行だけ）に、手で組んだ物:
+合本は 2 つ。どちらも capture-ledger が CAPTURE-456 より前に書いた形（`initialPages` は文書の行だけ）に、手で組んだ物
+（いまの capture-ledger は写しの行も `initialPages` に入れる。この 2 つは直していない）:
 
 - `bucket/org/test/crawls/00000000-0000-4000-8000-000000000440/r1/`: `pick.wacz`・`twice.wacz`（同じ URL を 2 回撮った 2 本。
   絵も違う）
@@ -116,5 +117,18 @@ WACZ Profile 1.26.0）。2026-11-14 に保管庫から写した（撮ったの�
 metadata の `document-record` は、どれも同じ WARC の子の文書の response の `WARC-Record-ID` を名指す。
 
 `bucket/org/test/crawls/00000000-0000-4000-8000-000000000147/r1/` の `pages.json`・`replay.json` が 4 本を束ねる（capture-ledger が
-書く形に、4 本の `pages/pages.jsonl` から組んだ物。写しの行は `keys` が空）。写しの行は頁の問いでは見つからないので、試験は頁の一覧の
-リンクと同じく `waczhash` で WACZ を名指して開く。名前の順で `portrait.wacz` は 4 番目。
+書く形に、4 本の `pages/pages.jsonl` から組んだ物）。名前の順で `portrait.wacz` は 4 番目。
+
+- `pages.json` は 12 行（4 本の文書の行と、写しの行 8 つ）。写しの行は `keys` が空なので、`/q/?url=` では見つからない。
+- `replay.json` の `initialPages` も 12 行で、写しの行を含む（2026-11-15・CAPTURE-456 で、capture-ledger の新しい形に合わせて
+  `pages.json` から組み直した。それまでは文書の行 4 つだけ）。並びは問い無しの `/q/` と同じ深さ → 時刻 → `id`（4 本とも深さ 0
+  なので時刻の順。portrait・nested・frameset・iframe）。`isSeed` は写しの行も同じ頁の文書の行と同じ true、`filename` は WACZ の名前。
+- 写しの行の WACZ は、`initialPages` の行の `filename` で決まる。一覧の行のリンクは `filename` から付いた `waczhash` を持ち、押すと
+  その WACZ を名指して開く。`waczhash` を付けずに URL で開いても、手元の IndexedDB の行（wabac.js の `getPagesByUrl`）に当たって
+  同じ WACZ が開く。`filename` が無ければ、`waczhash` を付けずに URL で開くと名前の順の先頭 3 本しか探さず、portrait の写しは
+  見つからない。
+- ただし一覧を開いた後は、写しの行の `filename` を消しても、押すと portrait の写しが開く（2026-11-15 に確かめた）。portrait の
+  文書の行の `filename` も消し、`pages.json` の文書の行の `keys` も空にすると開かない。一覧の中の何かの要求（見当: 行の絵の
+  `urn:browserhive:screenshot:…` で、URL の http の部分を `/q/?url=` で問う）が文書の行の `keys` に当たり、`portrait.wacz` を
+  読み込むと見ている（要求までは追っていない）。だから一覧の試験（「合本の頁の一覧に写しの行が並び…」）は、押した結果に加えて、行のリンクの `waczhash` が
+  `portrait.wacz` の hash であることを見る。
