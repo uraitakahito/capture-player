@@ -238,10 +238,11 @@ describe("写しの文書の枠", () => {
   });
 
   it("4 本の合本でも、写しの頁の枠を子の写しで開く", async () => {
-    // 合本の写しの行は、頁の一覧のリンクと同じく waczhash で WACZ を名指して開く。名指さないと見つからない ——
-    // replay.json の initialPages（手元の IndexedDB に入る頁）は文書の行だけで、getPagesByUrl で写しの URL に当たらず、
-    // `/q/?url=` も http(s) でない URL を 0 件で返す（keys を足しても同じ）ので、replay は resources の並び（名前の順）の
-    // 先頭 3 本の WACZ しか探さない（multiwacz.ts の getWACZFilesToTry）。portrait.wacz は 4 番目で、その外。子の写しの
+    // 合本の写しの行は、頁の一覧のリンクと同じく waczhash で WACZ を名指して開く。写しの行の WACZ を知る手は、
+    // replay.json の initialPages（手元の IndexedDB に入る頁）の行の filename だけ —— 一覧のリンクの waczhash はそこから
+    // 付き、waczhash を付けずに開いても getPagesByUrl がその行に当たる（CAPTURE-456 で写しの行が入ってから。2026-11-15 に
+    // 確かめた）。`/q/?url=` は http(s) でない URL を 0 件で返す（keys を足しても同じ）。どちらも無いと、replay は WACZ の
+    // 名前の順の先頭 3 本しか探さない（multiwacz.ts の getWACZFilesToTry）。portrait.wacz は 4 番目で、その外。子の写しの
     // 要求も同じ WACZ を名指す
     const source = `/wacz/${PLACE}/replay.json`;
     const page = await open(source, snapshot("after-behaviors", PORTRAIT), {
@@ -256,6 +257,67 @@ describe("写しの文書の枠", () => {
     expect(await textOf(inner)).toContain(MARK);
     await page.browserContext().close();
     await nested.browserContext().close();
+  });
+
+  it("合本の頁の一覧に写しの行が並び、portrait のスクリプトの後の写しを押すと、右の枠に子の写しにだけ在る印の文が出る", async () => {
+    // 一覧の 1 ページ目は replay.json の initialPages から作られる（CAPTURE-456 から写しの行も入る）。行のリンクは行の
+    // filename から付いた waczhash を持ち、押すとその WACZ を名指して開く。portrait.wacz は名前の順で 4 番目。
+    // ただし一覧を開くと、写しの行の filename が無くても portrait.wacz は別の道（文書の行の keys に当たる `/q/?url=`）で
+    // 読み込まれ、押せば印が出る（2026-11-15 に確かめた。test-e2e/fixtures/README.md）。だから waczhash はリンクで見る
+    const context = await browser.createBrowserContext();
+    const page = await context.newPage();
+    await page.setViewport({ width: 1200, height: 900 });
+    await page.goto(
+      `${origin}/?source=${encodeURIComponent(`/wacz/${PLACE}/replay.json`)}#view=pages`,
+    );
+    /** 一覧の行（wr-page-entry）のリンクが指す記録の URL と waczhash を、上から順に */
+    const listed = (): Promise<{ url: string; waczhash: string | null }[]> =>
+      page.evaluate(() => {
+        const rows: { url: string; waczhash: string | null }[] = [];
+        const walk = (root: Document | ShadowRoot): void => {
+          for (const el of root.querySelectorAll("*")) {
+            if (el.localName === "wr-page-entry") {
+              const href = el.shadowRoot?.querySelector("a[href]")?.getAttribute("href") ?? "";
+              const params = new URLSearchParams(href.replace(/^#/, ""));
+              rows.push({ url: params.get("url") ?? "", waczhash: params.get("waczhash") });
+            }
+            if (el.shadowRoot) walk(el.shadowRoot);
+          }
+        };
+        walk(document);
+        return rows;
+      });
+    const rows = await waitFor(
+      () => listed().then((r) => (r.length === bundlePages.length ? r : undefined)),
+      "合本の一覧の行",
+    );
+    // 文書の行も写しの行も、pages.json の行が全部並ぶ（after-load・after-behaviors の両方）
+    expect(rows.map((r) => r.url).sort()).toEqual(bundlePages.map((p) => p.url).sort());
+    const target = snapshot("after-behaviors", PORTRAIT);
+    expect(rows.find((r) => r.url === target)?.waczhash).toBe(waczHash("portrait.wacz"));
+    const clicked = await page.evaluate((url) => {
+      const walk = (root: Document | ShadowRoot): HTMLElement | null => {
+        for (const el of root.querySelectorAll("*")) {
+          if (el.localName === "wr-page-entry") {
+            const a = el.shadowRoot?.querySelector<HTMLElement>("a[href]");
+            const href = a?.getAttribute("href") ?? "";
+            if (a && new URLSearchParams(href.replace(/^#/, "")).get("url") === url) return a;
+          }
+          const inner = el.shadowRoot ? walk(el.shadowRoot) : null;
+          if (inner) return inner;
+        }
+        return null;
+      };
+      const link = walk(document);
+      link?.click();
+      return link !== null;
+    }, target);
+    expect(clicked).toBe(true);
+    const right = await frameOf(page, child("after-behaviors", 2, `${PORTRAIT}top.htm`));
+    const text = await textOf(right);
+    expect(text).toContain("肖像のホームページ");
+    expect(text).toContain(MARK);
+    await context.close();
   });
 });
 

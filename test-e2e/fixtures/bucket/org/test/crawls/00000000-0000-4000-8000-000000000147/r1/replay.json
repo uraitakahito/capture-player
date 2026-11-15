@@ -28,9 +28,81 @@
   ],
   "initialPages": [
     {
+      "id": "9eea45f0-3f1f-4131-873e-8f5bc469fab3",
+      "url": "http://127.0.0.1:19471/portrait/",
+      "ts": "2026-11-14T20:47:01.989Z",
+      "title": "肖像のホームページ",
+      "filename": "portrait.wacz",
+      "isSeed": true,
+      "crawl_id": "00000000-0000-4000-8000-000000000147"
+    },
+    {
+      "id": "9eea45f0-3f1f-4131-873e-8f5bc469fab3-after-load",
+      "url": "urn:browserhive:snapshot:after-load:http://127.0.0.1:19471/portrait/",
+      "ts": "2026-11-14T20:47:04.169Z",
+      "title": "肖像のホームページ",
+      "filename": "portrait.wacz",
+      "isSeed": true,
+      "crawl_id": "00000000-0000-4000-8000-000000000147"
+    },
+    {
+      "id": "9eea45f0-3f1f-4131-873e-8f5bc469fab3-after-behaviors",
+      "url": "urn:browserhive:snapshot:after-behaviors:http://127.0.0.1:19471/portrait/",
+      "ts": "2026-11-14T20:47:05.271Z",
+      "title": "肖像のホームページ",
+      "filename": "portrait.wacz",
+      "isSeed": true,
+      "crawl_id": "00000000-0000-4000-8000-000000000147"
+    },
+    {
+      "id": "c3e412d8-e273-4466-ab69-41781fc794a2",
+      "url": "http://127.0.0.1:19471/links/frameset-nested",
+      "ts": "2026-11-14T20:47:05.497Z",
+      "title": "frameset-nested",
+      "filename": "nested.wacz",
+      "isSeed": true,
+      "crawl_id": "00000000-0000-4000-8000-000000000147"
+    },
+    {
+      "id": "c3e412d8-e273-4466-ab69-41781fc794a2-after-load",
+      "url": "urn:browserhive:snapshot:after-load:http://127.0.0.1:19471/links/frameset-nested",
+      "ts": "2026-11-14T20:47:07.655Z",
+      "title": "frameset-nested",
+      "filename": "nested.wacz",
+      "isSeed": true,
+      "crawl_id": "00000000-0000-4000-8000-000000000147"
+    },
+    {
+      "id": "c3e412d8-e273-4466-ab69-41781fc794a2-after-behaviors",
+      "url": "urn:browserhive:snapshot:after-behaviors:http://127.0.0.1:19471/links/frameset-nested",
+      "ts": "2026-11-14T20:47:08.703Z",
+      "title": "frameset-nested",
+      "filename": "nested.wacz",
+      "isSeed": true,
+      "crawl_id": "00000000-0000-4000-8000-000000000147"
+    },
+    {
       "id": "83a22eec-1385-439d-b6b4-2d999933c3c9",
       "url": "http://127.0.0.1:19471/links/frameset",
       "ts": "2026-11-14T20:51:36.372Z",
+      "title": "frameset",
+      "filename": "frameset.wacz",
+      "isSeed": true,
+      "crawl_id": "00000000-0000-4000-8000-000000000147"
+    },
+    {
+      "id": "83a22eec-1385-439d-b6b4-2d999933c3c9-after-load",
+      "url": "urn:browserhive:snapshot:after-load:http://127.0.0.1:19471/links/frameset",
+      "ts": "2026-11-14T20:51:38.524Z",
+      "title": "frameset",
+      "filename": "frameset.wacz",
+      "isSeed": true,
+      "crawl_id": "00000000-0000-4000-8000-000000000147"
+    },
+    {
+      "id": "83a22eec-1385-439d-b6b4-2d999933c3c9-after-behaviors",
+      "url": "urn:browserhive:snapshot:after-behaviors:http://127.0.0.1:19471/links/frameset",
+      "ts": "2026-11-14T20:51:39.566Z",
       "title": "frameset",
       "filename": "frameset.wacz",
       "isSeed": true,
@@ -46,20 +118,20 @@
       "crawl_id": "00000000-0000-4000-8000-000000000147"
     },
     {
-      "id": "c3e412d8-e273-4466-ab69-41781fc794a2",
-      "url": "http://127.0.0.1:19471/links/frameset-nested",
-      "ts": "2026-11-14T20:47:05.497Z",
-      "title": "frameset-nested",
-      "filename": "nested.wacz",
+      "id": "74418c41-e08c-408b-a9f9-084fdaca445d-after-load",
+      "url": "urn:browserhive:snapshot:after-load:http://127.0.0.1:19471/links/iframe",
+      "ts": "2026-11-14T20:51:42.057Z",
+      "title": "iframe",
+      "filename": "iframe.wacz",
       "isSeed": true,
       "crawl_id": "00000000-0000-4000-8000-000000000147"
     },
     {
-      "id": "9eea45f0-3f1f-4131-873e-8f5bc469fab3",
-      "url": "http://127.0.0.1:19471/portrait/",
-      "ts": "2026-11-14T20:47:01.989Z",
-      "title": "肖像のホームページ",
-      "filename": "portrait.wacz",
+      "id": "74418c41-e08c-408b-a9f9-084fdaca445d-after-behaviors",
+      "url": "urn:browserhive:snapshot:after-behaviors:http://127.0.0.1:19471/links/iframe",
+      "ts": "2026-11-14T20:51:43.102Z",
+      "title": "iframe",
+      "filename": "iframe.wacz",
       "isSeed": true,
       "crawl_id": "00000000-0000-4000-8000-000000000147"
     }
