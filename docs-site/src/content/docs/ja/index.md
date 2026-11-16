@@ -11,10 +11,10 @@ Webrecorder の [ReplayWeb.page](https://github.com/webrecorder/replayweb.page) 
 
 Web Capture は、どのアーカイブにも 2 つのビューアへのリンクを出します。
 
-- [replayweb-server](https://github.com/uraitakahito/replayweb-server) は、**改変していない** ReplayWeb.page を配ります。アーカイブが ReplayWeb.page でそのまま再生できるかを見るための物です。
+- [replayweb-player](https://github.com/uraitakahito/replayweb-player) は、**改変していない** ReplayWeb.page を配ります。アーカイブが ReplayWeb.page でそのまま再生できるかを見るための物です。
 - capture-player は、改変した物を配ります。BrowserHive WACZ が WACZ 1.1.1 に足した物（写し、節目のスクリーンショット、撮った時の窓、控えた乱数、Archive Info の欄）を見せます。
 
-配り方は同じです。capture-player の server は replayweb-server から写しました。上流の版も同じにしてあるので、2 つのリンクの見え方の差は capture-player の直しから来ていて、版の差ではありません。
+配り方は同じです。capture-player の server は replayweb-player から写しました。上流の版も同じにしてあるので、2 つのリンクの見え方の差は capture-player の直しから来ていて、版の差ではありません。
 
 ## 次に読む頁
 

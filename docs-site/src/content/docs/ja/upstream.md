@@ -12,15 +12,15 @@ capture-player は、Webrecorder の [wabac.js](https://github.com/webrecorder/w
 | replayweb.page | v2.5.0                                                       | `upstream/replayweb.page/` |
 | wabac.js       | v2.27.1（replayweb.page v2.5.0 の `yarn.lock` が固定する版） | `upstream/wabac.js/`       |
 
-[replayweb-server](https://github.com/uraitakahito/replayweb-server)（改変していない ReplayWeb.page を配る、互換の再生）と同じ版にしてあります。2 つのリンクの見え方の差が、上流の版の差ではなく capture-player の直しだけになるようにするためです。
+[replayweb-player](https://github.com/uraitakahito/replayweb-player)（改変していない ReplayWeb.page を配る、互換の再生）と同じ版にしてあります。2 つのリンクの見え方の差が、上流の版の差ではなく capture-player の直しだけになるようにするためです。
 
-capture-player の直しには、見え方を変える物があります。BrowserHive WACZ が乱数の控え（`random/values.jsonl`）を持つとき、capture-player は頁のスクリプトに控えの値を返します（CAPTURE-378）。乱数で見せる物を選ぶ頁は、replayweb-server では撮った時と違う物を選び直し、capture-player では撮った時に選んだ物を選ぶことがあります。2 つのリンクで頁が違って見えるのは、この直しのためで、版の差ではありません。
+capture-player の直しには、見え方を変える物があります。BrowserHive WACZ が乱数の控え（`random/values.jsonl`）を持つとき、capture-player は頁のスクリプトに控えの値を返します（CAPTURE-378）。乱数で見せる物を選ぶ頁は、replayweb-player では撮った時と違う物を選び直し、capture-player では撮った時に選んだ物を選ぶことがあります。2 つのリンクで頁が違って見えるのは、この直しのためで、版の差ではありません。
 
-もう 1 つ、capture-player は BrowserHive WACZ の頁を、撮った時の窓（`datapackage.json` の `browserhive:capture.settings` の `viewport` と `devicePixelRatios`）で開きます（CAPTURE-422）。窓の幅・高さ・DPR で絵の版を選ぶ頁は、replayweb-server では見る人の窓の版を求めて記録に無いことがあり、capture-player では撮った時の版を求めます。
+もう 1 つ、capture-player は BrowserHive WACZ の頁を、撮った時の窓（`datapackage.json` の `browserhive:capture.settings` の `viewport` と `devicePixelRatios`）で開きます（CAPTURE-422）。窓の幅・高さ・DPR で絵の版を選ぶ頁は、replayweb-player では見る人の窓の版を求めて記録に無いことがあり、capture-player では撮った時の版を求めます。
 
-頁の一覧の絵も違います（CAPTURE-440）。上流の一覧は絵を `urn:thumbnail:<頁の URL>` の名前だけで引きますが、BrowserHive WACZ に在るのは節目のスクリーンショット（`urn:browserhive:screenshot:<時点>:<文書の URL>`）です。replayweb-server（手元の dev の一式では 8899 番）の一覧には絵が出ず、capture-player（8897 番）では文書の行に after-load の絵、写しの行に同じ時点の絵が出ます。
+頁の一覧の絵も違います（CAPTURE-440）。上流の一覧は絵を `urn:thumbnail:<頁の URL>` の名前だけで引きますが、BrowserHive WACZ に在るのは節目のスクリーンショット（`urn:browserhive:screenshot:<時点>:<文書の URL>`）です。replayweb-player（手元の dev の一式では 8899 番）の一覧には絵が出ず、capture-player（8897 番）では文書の行に after-load の絵、写しの行に同じ時点の絵が出ます。
 
-写しの枠も違います（CAPTURE-147）。BrowserHive v31.2.0 からの写し（`urn:browserhive:snapshot:`）の中の `<frame>`・`<iframe>` は、`src` を元のまま残し、子フレームの写しの URI（`urn:browserhive:frame-snapshot:`）を `data-browserhive-snapshot` に持ちます（[BrowserHive WARC Profile 1.5.0](https://uraitakahito.github.io/browserhive-warc-spec/1.5.0/#frame-snapshot-references)）。replayweb-server は属性を読まず、枠に記録した元の文書（読み込んだ時の物）を出します。capture-player は枠を子の写しで開くので、スクリプトが枠の中に足した物は capture-player にだけ出ます。写しにスクリプトが足した要素（`data-capture-script`）が在れば、capture-player の再生の帯に「Script-added elements: N」と出ます。
+写しの枠も違います（CAPTURE-147）。BrowserHive v31.2.0 からの写し（`urn:browserhive:snapshot:`）の中の `<frame>`・`<iframe>` は、`src` を元のまま残し、子フレームの写しの URI（`urn:browserhive:frame-snapshot:`）を `data-browserhive-snapshot` に持ちます（[BrowserHive WARC Profile 1.5.0](https://uraitakahito.github.io/browserhive-warc-spec/1.5.0/#frame-snapshot-references)）。replayweb-player は属性を読まず、枠に記録した元の文書（読み込んだ時の物）を出します。capture-player は枠を子の写しで開くので、スクリプトが枠の中に足した物は capture-player にだけ出ます。写しにスクリプトが足した要素（`data-capture-script`）が在れば、capture-player の再生の帯に「Script-added elements: N」と出ます。
 
 ## 上流の `static/wombat*.js` は配っていない
 
