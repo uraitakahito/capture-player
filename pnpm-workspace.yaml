@@ -1,3 +1,9 @@
+# docs-site（Astro + Starlight の docs サイト）は workspace に入れる。lockfile が 1 本で済み、
+# root の pnpm install が docs の依存も入れる。upstream/ の 2 つは自分の yarn で build するので入れない。
+# Dockerfile は docs-site/ を写さずに install するが、そのとき入るのは root の依存だけで、frozen でも通る。
+packages:
+  - "docs-site"
+
 # pnpm audit が見逃してよい勧告。この repo では直せず、届きもしないものだけを置く。
 # **足すなら、なぜ・いつ外すかを一緒に書くこと。**
 #

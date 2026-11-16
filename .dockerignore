@@ -11,3 +11,4 @@ upstream/replayweb.page/mkdocs
 upstream/replayweb.page/favicons
 upstream/**/.yarn/cache
 upstream/**/.yarn/install-state.gz
+docs-site

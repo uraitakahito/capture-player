@@ -11,6 +11,7 @@ export default tseslint.config(
       "public/**",
       "coverage/**",
       "upstream/**",
+      "docs-site/**",
       "scripts/**",
       "*.config.js",
     ],

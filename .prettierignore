@@ -8,3 +8,5 @@ pnpm-lock.yaml
 # 中身が同じかを照らすのは replayweb-server の物だけで、この写しを照らす物は無い。
 test/vectors/canonical-url.json
 upstream
+docs-site/dist
+docs-site/.astro
