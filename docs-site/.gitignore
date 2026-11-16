@@ -1,0 +1,6 @@
+# root からの pnpm install で入る
+node_modules/
+# build の成果物（_astro/・検索の索引 pagefind/ を含む）
+dist/
+# Astro が作る型とキャッシュ
+.astro/

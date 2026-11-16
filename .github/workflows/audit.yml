@@ -2,7 +2,8 @@
 # this repository cannot fix are skipped in pnpm-workspace.yaml under
 # auditConfig.ignoreGhsas, next to why and when to remove them. The viewer's own
 # dependencies live in upstream/*/yarn.lock and are checked when upstream is
-# pulled (docs/upstream.md). Keeping the exception there rather than in a
+# pulled (the docs site's Following upstream,
+# docs-site/src/content/docs/upstream.md). Keeping the exception there rather than in a
 # flag here means a local `pnpm audit` gives the same answer as this job.
 #
 # Advisories are published independently of our pull requests, so this also
