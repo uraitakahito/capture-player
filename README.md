@@ -17,7 +17,7 @@ docs site:
 
 ## Related Projects
 
-- [replayweb-server](https://github.com/uraitakahito/replayweb-server) — serves the unmodified ReplayWeb.page, the other viewer Web Capture links to.
+- [replayweb-player](https://github.com/uraitakahito/replayweb-player) — serves the unmodified ReplayWeb.page, the other viewer Web Capture links to.
 - [capture-ledger](https://github.com/uraitakahito/capture-ledger) — builds this image in the Web Capture dev stack and links each archive to both viewers.
 - [browserhive-specs](https://github.com/uraitakahito/browserhive-specs) — the BrowserHive WACZ Profile this viewer reads.
 

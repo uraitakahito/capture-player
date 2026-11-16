@@ -43,7 +43,7 @@ image の中では、443 を開くために root で起き、開いた後に `no
 
 ほかは 404 です。ビューアのファイルの一覧は [`src/static.ts`](https://github.com/uraitakahito/capture-player/blob/main/src/static.ts) にあります。
 
-合本の形、頁の問い、`/wacz/` の鍵の綴りは、この server の写し元の [replayweb-server](https://github.com/uraitakahito/replayweb-server) が決めています（[`docs/replay-bundle.md`](https://github.com/uraitakahito/replayweb-server/blob/main/docs/replay-bundle.md)）。
+合本の形、頁の問い、`/wacz/` の鍵の綴りは、この server の写し元の [replayweb-player](https://github.com/uraitakahito/replayweb-player) が決めています（[`docs/replay-bundle.md`](https://github.com/uraitakahito/replayweb-player/blob/main/docs/replay-bundle.md)）。
 
 ## image を建てる
 

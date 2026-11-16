@@ -16,7 +16,7 @@ are listed in [NOTICE.md](https://github.com/uraitakahito/capture-player/blob/ma
 | wabac.js       | v2.27.1 (the version replayweb.page v2.5.0's `yarn.lock` pins) | `upstream/wabac.js/`       |
 
 These are the same versions as in
-[replayweb-server](https://github.com/uraitakahito/replayweb-server), which
+[replayweb-player](https://github.com/uraitakahito/replayweb-player), which
 serves the unmodified ReplayWeb.page as the compatibility replay. That way, a
 difference between the two links comes only from capture-player's changes, not
 from an upstream version difference.
@@ -26,17 +26,17 @@ Some of capture-player's changes change what a page looks like:
 - When a BrowserHive WACZ holds the recorded random values
   (`random/values.jsonl`), capture-player gives the page's scripts the recorded
   values. A page that picks what to show at random may pick something else in
-  replayweb-server, and what it picked at capture in capture-player.
+  replayweb-player, and what it picked at capture in capture-player.
 - capture-player opens a BrowserHive WACZ page in the window it was captured in
   (`viewport` and `devicePixelRatios` in `browserhive:capture.settings` in
   `datapackage.json`). A page that picks image variants by the window's width,
-  height, or DPR (device pixel ratio) asks, in replayweb-server, for the
+  height, or DPR (device pixel ratio) asks, in replayweb-player, for the
   viewer's variants, which the archive may not hold; in capture-player it asks
   for the captured ones.
 - The page list's images differ. Upstream's list looks images up only by the
   name `urn:thumbnail:<page URL>`, but a BrowserHive WACZ holds stage
   screenshots (`urn:browserhive:screenshot:<stage>:<document URL>`). The list
-  in replayweb-server (port 8899 in the local dev stack) shows no image;
+  in replayweb-player (port 8899 in the local dev stack) shows no image;
   capture-player (port 8897) shows the after-load screenshot on a document's row
   and the screenshot of the same stage on a snapshot's row.
 - Frames in a snapshot differ. In a snapshot (`urn:browserhive:snapshot:`) from
@@ -44,7 +44,7 @@ Some of capture-player's changes change what a page looks like:
   holds the URI of its child frame's snapshot
   (`urn:browserhive:frame-snapshot:`) in `data-browserhive-snapshot`
   ([BrowserHive WARC Profile 1.5.0](https://uraitakahito.github.io/browserhive-warc-spec/1.5.0/#frame-snapshot-references)).
-  replayweb-server does not read the attribute and shows the recorded document
+  replayweb-player does not read the attribute and shows the recorded document
   (as it loaded) in the frame. capture-player opens the frame on the child
   snapshot, so what a script added inside the frame appears only in
   capture-player. When a snapshot holds elements a script added

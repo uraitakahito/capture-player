@@ -60,9 +60,9 @@ Anything else is 404. The full list of viewer files is in
 [`src/static.ts`](https://github.com/uraitakahito/capture-player/blob/main/src/static.ts).
 
 The replay bundle format, the page query, and how `/wacz/` keys are spelled are
-defined by replayweb-server, which this server was copied from:
-[`docs/replay-bundle.md`](https://github.com/uraitakahito/replayweb-server/blob/main/docs/replay-bundle.md)
-in [replayweb-server](https://github.com/uraitakahito/replayweb-server).
+defined by replayweb-player, which this server was copied from:
+[`docs/replay-bundle.md`](https://github.com/uraitakahito/replayweb-player/blob/main/docs/replay-bundle.md)
+in [replayweb-player](https://github.com/uraitakahito/replayweb-player).
 
 ## Building the image
 

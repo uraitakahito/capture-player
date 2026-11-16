@@ -8,7 +8,7 @@ description: capture-player の repo の置き場、ビューアの build、検�
 | path                                             | 何か                                                                                                                                                                           |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `upstream/wabac.js/`・`upstream/replayweb.page/` | 上流の 2 つの repo。`git subtree --squash` で取り込み、capture-player の直しを載せた物                                                                                         |
-| `src/`                                           | [replayweb-server](https://github.com/uraitakahito/replayweb-server) から写した server。ビューアを配り、S3 互換の保管庫から `/wacz/` を中継し、合本の頁の問い（`/q/`）に答える |
+| `src/`                                           | [replayweb-player](https://github.com/uraitakahito/replayweb-player) から写した server。ビューアを配り、S3 互換の保管庫から `/wacz/` を中継し、合本の頁の問い（`/q/`）に答える |
 | `scripts/build-viewer.sh`                        | `upstream/` からビューアを Node 24 で `public/` に build する                                                                                                                  |
 | `scripts/test-viewer.sh`                         | capture-player が `upstream/wabac.js/test/` に足した試験を流す                                                                                                                 |
 | `scripts/check-upstream.mjs`                     | `upstream/` の下で変わったファイルが `NOTICE.md` に無ければ落ちる                                                                                                              |

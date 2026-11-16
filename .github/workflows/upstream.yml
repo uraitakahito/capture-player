@@ -44,6 +44,6 @@ jobs:
           printf '%s\n' \
             "upstream/ は replaywebpage ${have_rwp}・wabac.js ${have_wabac}。npm の最新は replaywebpage ${npm_rwp}・wabac.js ${npm_wabac}。" \
             "" \
-            "取り込む手順は https://uraitakahito.github.io/capture-player/ja/upstream/ （英語は https://uraitakahito.github.io/capture-player/upstream/ ）。replayweb-server（互換の再生）も同じ版に上げるかを、そのときに決める。" \
+            "取り込む手順は https://uraitakahito.github.io/capture-player/ja/upstream/ （英語は https://uraitakahito.github.io/capture-player/upstream/ ）。replayweb-player（互換の再生）も同じ版に上げるかを、そのときに決める。" \
             > body.md
           gh issue create --title "${title}" --body-file body.md

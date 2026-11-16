@@ -1,10 +1,10 @@
 /**
- * 起動の設定を環境変数から読む。写し元の replayweb-server が nginx だった頃の entrypoint.sh が
+ * 起動の設定を環境変数から読む。写し元の replayweb-player が nginx だった頃の entrypoint.sh が
  * 見ていたことを、同じ順と同じ文言で見る (この repo は初めから Node の server で、entrypoint.sh は無い)。
  *
- * 文言は replayweb-server と同じに保つ。BrowserHive と capture-ledger の docker-compose.yml の注記は、
- * replayweb-server がこの文言 (`S3_BUCKET_URL must be http(s)://…, got: …`) で落ちた記録を引き、
- * capture-ledger の capture-player の service は、その注記を「replayweb-server と同じ理由で」と指している。
+ * 文言は replayweb-player と同じに保つ。BrowserHive と capture-ledger の docker-compose.yml の注記は、
+ * replayweb-player がこの文言 (`S3_BUCKET_URL must be http(s)://…, got: …`) で落ちた記録を引き、
+ * capture-ledger の capture-player の service は、その注記を「replayweb-player と同じ理由で」と指している。
  */
 
 /** 起動を止める誤り。message は stderr に出す 1 行そのもの (`FATAL: …`)。 */
@@ -45,7 +45,7 @@ const BUCKET_URL_GLOB = /^https?:\/\/[\s\S]*\/[\s\S]+$/;
 /**
  * S3_BUCKET_URL を読む。glob に合い、かつ URL として host と bucket を持つときだけ通す。
  *
- * glob だけだと `http:///x` (host が空) や `http://h/b?x` (query) も通り、replayweb-server の nginx は
+ * glob だけだと `http:///x` (host が空) や `http://h/b?x` (query) も通り、replayweb-player の nginx は
  * それで起きて要求の時に壊れていた。断るときの文言は同じ (`http(s)://<host>[:<port>]/<bucket>` の形の外)。
  */
 export const parseBucketUrl = (value: string): Upstream => {

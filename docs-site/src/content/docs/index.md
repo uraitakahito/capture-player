@@ -16,7 +16,7 @@ served by a small Node server.
 
 Web Capture links to two viewers for every archive:
 
-- [replayweb-server](https://github.com/uraitakahito/replayweb-server) serves
+- [replayweb-player](https://github.com/uraitakahito/replayweb-player) serves
   the **unmodified** ReplayWeb.page. It checks that an archive replays in
   ReplayWeb.page as it is.
 - capture-player serves the modified one. It shows what a BrowserHive WACZ adds
@@ -24,7 +24,7 @@ Web Capture links to two viewers for every archive:
   captured in, recorded random values, and a field in Archive Info.
 
 Both are served the same way: capture-player's server was copied from
-replayweb-server. Both use the same upstream versions, so a difference between
+replayweb-player. Both use the same upstream versions, so a difference between
 the two links comes from capture-player's changes, not from a version
 difference.
 

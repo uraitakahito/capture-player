@@ -4,7 +4,7 @@
 #    scripts/build-viewer.sh が、server の配る 6 つ（index.html・ui.js・sw.js・LICENSE・__version・SOURCE.txt）を
 #    /out に揃える。replayweb.page の webpack は browser の組だけ（全部だと Apple Container の builder の 2 GB で
 #    止まった。2026-11-12 に実測）。
-# 2. build — server（src/。replayweb-server から写した node: だけの server）を tsc で dist/ に。
+# 2. build — server（src/。replayweb-player から写した node: だけの server）を tsc で dist/ に。
 # 3. 実行 — node と dist/ と public/ だけ。node_modules は持たない。
 #
 # GIT_TAG・GIT_REV は capture-ledger の compose が submodule から渡す（/__version・/SOURCE.txt・About に出る）。
