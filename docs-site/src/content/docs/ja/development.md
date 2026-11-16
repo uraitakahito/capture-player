@@ -53,4 +53,4 @@ pnpm run site:check     # build して、リンクと en・ja の対を照らす
 
 ## リリース
 
-リリースは、`main` の commit に打つ注釈タグ `vX.Y.Z` です。`package.json` の `version` は `0.0.1` のまま上げません。タグを push すると、このサイトが公開されます。
+リリースは、題が `release: vX.Y.Z — 要約` の PR です。同じ PR で `package.json` の `version` を `X.Y.Z` に上げます。2 つが食い違うと `.github/workflows/release-version.yml` が赤にします。merge した `main` の commit に注釈タグ `vX.Y.Z` を打ちます。タグを push すると、このサイトが公開されます。
