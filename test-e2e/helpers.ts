@@ -3,7 +3,7 @@ import { createReadStream, existsSync, readdirSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import type { AddressInfo } from "node:net";
-import puppeteer, { type Browser, type Page } from "puppeteer-core";
+import puppeteer, { type Browser, type Frame, type Page } from "puppeteer-core";
 
 import { run, type RunningViewer } from "../src/run.js";
 
@@ -151,6 +151,31 @@ export const waitFor = async <T>(
     if (value !== undefined) return value;
     if (Date.now() > until) throw new Error(`待ちきれなかった: ${what}`);
     await new Promise((r) => setTimeout(r, 250));
+  }
+};
+
+/**
+ * 枠の中で probe を走らせ、waitFor の 1 回分の答えを返す。frame が外れていれば（replay が枠を作り直すと、前に
+ * 見つけた Frame は外れる）同じ URL の今の枠で走らせ、無ければ undefined。投げたときも undefined にして
+ * waitFor に待ち直させる —— 外れた Frame の evaluate・frameElement は puppeteer が同期で投げる
+ * （throwIfDetached。async でない包み）ので、`frame.evaluate(…).catch(…)` の catch には届かない（2026-11-17 の
+ * CI で「Attempted to use detached Frame」で落ちた）。
+ */
+export const inFrame = async <T>(
+  frame: Frame,
+  probe: (live: Frame) => Promise<T | undefined>,
+): Promise<T | undefined> => {
+  const live = frame.detached
+    ? frame
+        .page()
+        .frames()
+        .find((f) => !f.detached && f.url() === frame.url())
+    : frame;
+  if (live === undefined) return undefined;
+  try {
+    return await probe(live);
+  } catch {
+    return undefined;
   }
 };
 

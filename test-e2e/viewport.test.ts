@@ -9,7 +9,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Browser, Frame, Page } from "puppeteer-core";
 
 import type { RunningViewer } from "../src/run.js";
-import { launch, startFixtures, startViewer, waitFor } from "./helpers.js";
+import { inFrame, launch, startFixtures, startViewer, waitFor } from "./helpers.js";
 
 const HOST = "http://127.0.0.1:19461";
 const BUNDLE = "org/test/crawls/00000000-0000-4000-8000-000000000422/r1";
@@ -105,8 +105,8 @@ interface Seen {
 const seenIn = (frame: Frame, count: number): Promise<Seen> =>
   waitFor(
     () =>
-      frame
-        .evaluate((n: number) => {
+      inFrame(frame, (f) =>
+        f.evaluate((n: number) => {
           const images = performance
             .getEntriesByType("resource")
             .map((e) => /\/viewport\/img\/([a-z0-9-]+)\.svg/.exec(e.name)?.[1])
@@ -119,8 +119,8 @@ const seenIn = (frame: Frame, count: number): Promise<Seen> =>
             res1: matchMedia("(resolution: 1dppx)").matches,
             images,
           };
-        }, count)
-        .catch(() => undefined),
+        }, count),
+      ),
     "枠の中の値",
   );
 
@@ -275,10 +275,12 @@ describe("切り替え", () => {
     await barText(page, /^Capture window 1280×800 · DPR 1 — actual size/);
     const width = await waitFor(
       () =>
-        frame
-          .frameElement()
-          .then((el) => el?.boundingBox())
-          .then((box) => (box && Math.round(box.width) === 1280 ? box.width : undefined)),
+        inFrame(frame, (f) =>
+          f
+            .frameElement()
+            .then((el) => el?.boundingBox())
+            .then((box) => (box && Math.round(box.width) === 1280 ? box.width : undefined)),
+        ),
       "等倍の枠の幅",
     );
     expect(Math.round(width)).toBe(1280);
