@@ -70,5 +70,7 @@ are in [Following upstream](../upstream/).
 
 ## Releases
 
-A release is an annotated tag `vX.Y.Z` on a commit on `main`. `package.json`'s
-`version` stays at `0.0.1`. Pushing the tag publishes this site.
+A release is a pull request titled `release: vX.Y.Z — summary` that also sets `version` in
+`package.json` to `X.Y.Z`; `.github/workflows/release-version.yml` fails it when the two
+differ. After it is merged, the merge commit on `main` gets the annotated tag `vX.Y.Z`.
+Pushing the tag publishes this site.
