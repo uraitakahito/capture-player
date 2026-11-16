@@ -15,7 +15,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Browser, Frame, Page } from "puppeteer-core";
 
 import type { RunningViewer } from "../src/run.js";
-import { ROOT, launch, startFixtures, startViewer, waitFor } from "./helpers.js";
+import { ROOT, inFrame, launch, startFixtures, startViewer, waitFor } from "./helpers.js";
 
 const HOST = "http://127.0.0.1:19471";
 const PORTRAIT = `${HOST}/portrait/`;
@@ -94,10 +94,11 @@ const frameOf = (page: Page, url: string): Promise<Frame> =>
 const textOf = (frame: Frame): Promise<string> =>
   waitFor(
     () =>
-      frame
-        .evaluate(() => document.body?.innerText ?? "")
-        .then((t) => (t.trim() === "" ? undefined : t))
-        .catch(() => undefined),
+      inFrame(frame, (f) =>
+        f
+          .evaluate(() => document.body?.innerText ?? "")
+          .then((t) => (t.trim() === "" ? undefined : t)),
+      ),
     `${frame.url()} の文字`,
   );
 
@@ -132,13 +133,13 @@ const marksBadge = (
 const hasMarksScript = (frame: Frame): Promise<boolean> =>
   waitFor(
     () =>
-      frame
-        .evaluate(() =>
+      inFrame(frame, (f) =>
+        f.evaluate(() =>
           document.readyState === "loading"
             ? undefined
             : [...document.scripts].some((s) => s.text.includes("bh-script-marks")),
-        )
-        .catch(() => undefined),
+        ),
+      ),
     `${frame.url()} の script`,
   );
 
@@ -150,9 +151,9 @@ const hasMarksScript = (frame: Frame): Promise<boolean> =>
 const afterSent = async (page: Page, frame: Frame): Promise<void> => {
   await waitFor(
     () =>
-      frame
-        .evaluate(() => (document.readyState === "loading" ? undefined : true))
-        .catch(() => undefined),
+      inFrame(frame, (f) =>
+        f.evaluate(() => (document.readyState === "loading" ? undefined : true)),
+      ),
     `${frame.url()} の DOMContentLoaded`,
   );
   await page.evaluate(
@@ -184,12 +185,12 @@ describe("写しの文書の枠", () => {
     // 子の写しの中の相対の参照（<base> で解く）も記録から出る
     const image = await waitFor(
       () =>
-        right
-          .evaluate(() => {
+        inFrame(right, (f) =>
+          f.evaluate(() => {
             const img = document.querySelector("img");
             return img?.complete ? img.naturalWidth : undefined;
-          })
-          .catch(() => undefined),
+          }),
+        ),
       "子の写しの絵",
     );
     expect(image).toBeGreaterThan(0);

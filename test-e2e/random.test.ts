@@ -10,7 +10,7 @@ import type { Server } from "node:http";
 import type { Browser, Frame, Page } from "puppeteer-core";
 
 import type { RunningViewer } from "../src/run.js";
-import { launch, startFixtures, startViewer, waitFor } from "./helpers.js";
+import { inFrame, launch, startFixtures, startViewer, waitFor } from "./helpers.js";
 
 const HOST = "http://capture-fixtures-1-a.browserhive:8080";
 const PICK = `${HOST}/random/pick`;
@@ -80,8 +80,8 @@ const frameOf = (page: Page, url: string): Promise<Frame> =>
 const pickedIn = (frame: Frame): Promise<Picked> =>
   waitFor(
     () =>
-      frame
-        .evaluate(() => {
+      inFrame(frame, (f) =>
+        f.evaluate(() => {
           const img = document.querySelector<HTMLImageElement>("img#pick");
           const m = /^pick (\d+)$/.exec(document.title);
           if (!img || !m || !img.complete) return undefined;
@@ -91,8 +91,8 @@ const pickedIn = (frame: Frame): Promise<Picked> =>
             src: img.currentSrc,
             hasScript: !!document.querySelector("script[src*='capturePlayerRandom.js']"),
           };
-        })
-        .catch(() => undefined),
+        }),
+      ),
     "頁が選んだ数",
   );
 
