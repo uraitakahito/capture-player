@@ -7,8 +7,7 @@
 #
 # Advisories are published independently of our pull requests, so this also
 # runs every day. `schedule` and `workflow_dispatch` only run workflows that
-# exist on the default branch (main); until this file is released, only
-# pull_request and push apply.
+# exist on the default branch (main).
 #
 # `pnpm audit` directly rather than through a package script: a direct command
 # reads the lockfile without pnpm 11 installing everything first (it does that

@@ -3,7 +3,8 @@ node_modules
 public
 coverage
 pnpm-lock.yaml
-# 合本の正規化の試験の例 (docs/replay-bundle.md)。capture-ledger が写しを持ち、中身が同じかを
-# 照らすので、prettier に並べ直させない (バイトで同じ物を置く)。
+# 合本の正規化の試験の例 (replayweb-server の docs/replay-bundle.md の「正規化」)。replayweb-server の
+# 同じ名前のファイルの写しで、バイトで同じ物を置くので、prettier に並べ直させない。capture-ledger が
+# 中身が同じかを照らすのは replayweb-server の物だけで、この写しを照らす物は無い。
 test/vectors/canonical-url.json
 upstream

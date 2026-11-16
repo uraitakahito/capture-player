@@ -2,8 +2,9 @@
  * 起動の設定を環境変数から読む。写し元の replayweb-server が nginx だった頃の entrypoint.sh が
  * 見ていたことを、同じ順と同じ文言で見る (この repo は初めから Node の server で、entrypoint.sh は無い)。
  *
- * 文言は変えない。消費者の compose のコメントに写されている (BrowserHive と capture-ledger の
- * docker-compose.yml が `S3_BUCKET_URL must be http(s)://…, got: …` を引いている)。
+ * 文言は replayweb-server と同じに保つ。BrowserHive と capture-ledger の docker-compose.yml の注記は、
+ * replayweb-server がこの文言 (`S3_BUCKET_URL must be http(s)://…, got: …`) で落ちた記録を引き、
+ * capture-ledger の capture-player の service は、その注記を「replayweb-server と同じ理由で」と指している。
  */
 
 /** 起動を止める誤り。message は stderr に出す 1 行そのもの (`FATAL: …`)。 */
