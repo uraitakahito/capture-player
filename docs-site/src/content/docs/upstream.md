@@ -99,6 +99,25 @@ opens an issue when there is a newer version.
 9. After the release (minor), move capture-ledger's `.upstream/capture-player`
    forward.
 
+## Dependabot's pull requests for `upstream/`
+
+Dependabot opens security pull requests for `upstream/wabac.js/yarn.lock`.
+The packages go into the viewer (`sw.js`) or its build, so take them like
+any other change to `upstream/`:
+
+- `upstream/wabac.js/yarn.lock` and `upstream/replayweb.page/yarn.lock` are
+  listed in `NOTICE.md`, so `check:upstream` passes on a pull request that only
+  moves `upstream/wabac.js/yarn.lock`. Bring their date in `NOTICE.md`
+  forward with the next change to `upstream/`.
+- Dependabot moves only `upstream/wabac.js/yarn.lock`. When a pull request also
+  changes `upstream/wabac.js/package.json`, `upstream/replayweb.page/yarn.lock`
+  has to follow (it records wabac's dependencies through `portal:`), or the
+  viewer build fails on `yarn install --immutable`. Run `corepack yarn install`
+  on Node 24 in `upstream/replayweb.page/` and commit the result.
+- On the next upstream pull, `yarn.lock` may conflict. Take upstream's file,
+  run `corepack yarn install`, and keep the newer versions only where an
+  advisory still needs them.
+
 ## Sending a change upstream
 
 The DER signatures that do not verify would help upstream too (replayweb.page
