@@ -48,6 +48,14 @@ capture-player の直しには、見え方を変える物があります。Brows
 8. **PR は merge commit で入れる（squash しない）。** `git subtree pull` は、前の取り込みの commit の文の `git-subtree-dir:`・`git-subtree-split:` を履歴から探す。squash すると、その文が main から消える。
 9. リリース（minor）の後、capture-ledger の `.upstream/capture-player` を上げる。
 
+## `upstream/` への Dependabot の PR
+
+Dependabot は `upstream/wabac.js/yarn.lock` に security の PR を出します。中の package はビューア（`sw.js`）か、その build に入るので、`upstream/` のほかの直しと同じに扱います。
+
+- `NOTICE.md` には `upstream/wabac.js/yarn.lock` と `upstream/replayweb.page/yarn.lock` が載っているので、`upstream/wabac.js/yarn.lock` だけを動かす PR は `check:upstream` を通ります。`NOTICE.md` の日付は、次に `upstream/` を直すときに進めます。
+- Dependabot が動かすのは `upstream/wabac.js/yarn.lock` だけです。`upstream/wabac.js/package.json` も変える PR では、`upstream/replayweb.page/yarn.lock` も追わせます（`portal:` で wabac の依存を写している）。追わせないと、ビューアの build が `yarn install --immutable` で落ちます。Node 24 で `upstream/replayweb.page/` の `corepack yarn install` を流して、結果を commit します。
+- 次に上流を取り込むとき、`yarn.lock` がぶつかることがあります。上流のファイルを取って `corepack yarn install` を流し、勧告のためにまだ要る所だけ新しい版を残します。
+
 ## 直しを上流へ返すなら
 
 DER の署名を照合できない件は、上流でも役に立ちます（replayweb.page の issue #520 が近い症状）。上流の README は、PR の前に issue を立てるよう頼んでいます。外へ出す操作なので、出すかは利用者が決めます。
