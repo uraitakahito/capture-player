@@ -172,8 +172,13 @@ const afterSent = async (page: Page, frame: Frame): Promise<void> => {
   );
 };
 
-const shownBadge = (page: Page) =>
-  waitFor(() => marksBadge(page).then((b) => b ?? undefined), "スクリプトが足した要素の印");
+// 帯の印は、枠ごとの数が届くたびに書き換わる（先に届いた枠の分だけの「1」が先に出ることがある）。
+// 最初に出た字ではなく、全部の枠の数が足された字になるまで待つ（2026-11-18 の CI で「1」を読んで落ちた）
+const shownBadge = (page: Page, text: string) =>
+  waitFor(
+    () => marksBadge(page).then((b) => (b?.text === text ? b : undefined)),
+    `スクリプトが足した要素の印「${text}」`,
+  );
 
 describe("写しの文書の枠", () => {
   it("写しの頁を開くと、右の枠は子の写しで開き、子の写しにだけ在る印の文が出る", async () => {
@@ -325,7 +330,7 @@ describe("写しの文書の枠", () => {
 describe("スクリプトが足した要素の数", () => {
   it("写しの頁では、主と枠の中の子の写しの数を足して帯に出す", async () => {
     const page = await open("frame-snapshots", snapshot("after-behaviors", PORTRAIT));
-    const badge = await shownBadge(page);
+    const badge = await shownBadge(page, "Script-added elements: 2");
     // 主の写し（frameset）には 0、左の子に menu-marker 1、右の子に marker 1
     expect(badge.text).toBe("Script-added elements: 2");
     expect(badge.title).toBe("marker 1 · menu-marker 1");
@@ -334,7 +339,7 @@ describe("スクリプトが足した要素の数", () => {
 
   it("入れ子でも、孫の写しまで足す", async () => {
     const page = await open("frame-snapshots-nested", snapshot("after-behaviors", NESTED));
-    const badge = await shownBadge(page);
+    const badge = await shownBadge(page, "Script-added elements: 2");
     expect(badge.text).toBe("Script-added elements: 2");
     expect(badge.title).toBe("marker 1 · menu-marker 1");
     await page.browserContext().close();
@@ -363,7 +368,7 @@ describe("スクリプトが足した要素の数", () => {
   // CAPTURE-422 で、ダークモードの字が地と同じ白になって消えた。帯の印も字と地の色を決める
   it.each(["light", "dark"] as const)("%s モードでも、印の字は地と違う色", async (scheme) => {
     const page = await open("frame-snapshots", snapshot("after-behaviors", PORTRAIT), { scheme });
-    const badge = await shownBadge(page);
+    const badge = await shownBadge(page, "Script-added elements: 2");
     expect(badge.text).toBe("Script-added elements: 2");
     expect(badge.color).not.toBe(badge.background);
     await page.browserContext().close();
