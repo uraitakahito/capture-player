@@ -129,7 +129,7 @@ because a snapshot is not a response from the original URL.
 - The capture itself can change what it keeps. It replaces secret values, may
   remove a consent banner before it copies the page (the dismissal), and capture
   scripts may add elements. `browserhive:capture` in `datapackage.json` records
-  the dismissal and the secrets; an element a capture script added carries
+  the dismissal and the secrets; elements a capture script added carry
   `data-capture-script` in the snapshot, and capture-player counts them in the
   bar above the page.
 - A screenshot covers only the top of the page. The whole page is in the
