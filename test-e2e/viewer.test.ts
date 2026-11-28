@@ -66,8 +66,38 @@ describe("写しの時点の題", () => {
       return t.includes("Snapshot after load") ? t : undefined;
     }, "写しの行");
     expect(text).toContain("Snapshot after load: ok");
-    expect(text).toContain("Snapshot after scripts: ok");
+    expect(text).toContain("Snapshot after capture scripts: ok");
     expect(text).not.toContain("urn:browserhive:snapshot:");
+  });
+
+  // 時点の名は WACZ Profile 1.30.0 から after-capture-scripts（それより前は after-behaviors。上の snapshots.wacz）。
+  // 見本は snapshots.wacz の時点の名と名乗る版だけを替えた物（fixtures/derive-capture-scripts.ts）
+  it("WACZ Profile 1.30.0 の名（after-capture-scripts）の写しの行も、同じ題になる", async () => {
+    const page = await open("snapshots-capture-scripts", "view=pages");
+    const text = await waitFor(async () => {
+      const t = await deepText(page);
+      return t.includes("Snapshot after load") ? t : undefined;
+    }, "写しの行");
+    expect(text).toContain("Snapshot after load: ok");
+    expect(text).toContain("Snapshot after capture scripts: ok");
+    expect(text).not.toContain("Snapshot (");
+    expect(text).not.toContain("urn:browserhive:snapshot:");
+  });
+
+  it("新しい名の写しを開くと、写しの文書が出る", async () => {
+    const url =
+      "urn:browserhive:snapshot:after-capture-scripts:http://capture-fixtures.capture-ledger:8080/plain-html";
+    const page = await open(
+      "snapshots-capture-scripts",
+      new URLSearchParams({ view: "replay", url, ts: "20261110190703" }).toString(),
+    );
+    const text = await waitFor(async () => {
+      const frame = page.frames().find((f) => f.url().includes("mp_/"));
+      if (!frame) return undefined;
+      const body = await frame.evaluate(() => document.body.innerText).catch(() => "");
+      return body.trim() !== "" ? body : undefined;
+    }, "写しの頁");
+    expect(text.trim()).toBe("ok");
   });
 });
 
@@ -110,6 +140,11 @@ describe("Archive Info の BrowserHive の欄", () => {
     expect(text).toContain("Complete: every response body was kept");
     expect(text).toContain("Snapshots: after-load, after-behaviors");
     expect(text).toContain("Captured with BrowserHive 29.0.0 (cb0a278)");
+  });
+
+  it("写しの時点は、記録の名をそのまま出す（新しい名の WACZ は新しい名）", async () => {
+    const text = await infoText("snapshots-capture-scripts");
+    expect(text).toContain("Snapshots: after-load, after-capture-scripts");
   });
 
   it("署名の無い WACZ は、署名を有効にも無効にも数えず not signed と言う", async () => {

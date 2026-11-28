@@ -46,10 +46,10 @@ Some of capture-player's changes change what a page looks like:
   ([BrowserHive WARC Profile 1.5.0](https://uraitakahito.github.io/browserhive-warc-spec/1.5.0/#frame-snapshot-references)).
   replayweb-player does not read the attribute and shows the recorded document
   (as it loaded) in the frame. capture-player opens the frame on the child
-  snapshot, so what a script added inside the frame appears only in
-  capture-player. When a snapshot holds elements a script added
+  snapshot, so what a capture script added inside the frame appears only in
+  capture-player. When a snapshot holds elements a capture script added
   (`data-capture-script`), capture-player's replay bar says
-  "Script-added elements: N".
+  "Elements added by capture scripts: N".
 
 ## Upstream's `static/wombat*.js` is not served
 

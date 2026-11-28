@@ -1651,7 +1651,8 @@ class Item extends LitElement {
   }
 
   // capture-player: 2026-11-15 に足した（CAPTURE-147）。BrowserHive の写しの文書（枠の中の子の写しも足す）に、
-  // スクリプトが足した要素（[data-capture-script]）が 1 つでも在るときだけ出す。押すと id ごとの数
+  // capture scripts が足した要素（[data-capture-script]）が 1 つでも在るときだけ出す。押すと id ごとの数。
+  // 2026-11-28（CAPTURE-506）: 字を「Script-added elements」から「Elements added by capture scripts」に（頁自身の JavaScript と紛れないように）
   private renderScriptMarksBadge() {
     const m = this.replayScriptMarks;
     if (!m || m.count <= 0) {
@@ -1670,7 +1671,7 @@ class Item extends LitElement {
       @click="${() =>
         (this.showScriptMarksDetail = !this.showScriptMarksDetail)}"
     >
-      Script-added elements:
+      Elements added by capture scripts:
       ${m.count}${this.showScriptMarksDetail
         ? html`<span class="script-marks-detail">${detail}</span>`
         : nothing}

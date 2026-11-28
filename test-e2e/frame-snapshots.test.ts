@@ -4,7 +4,7 @@
 // 子の写しの URI を `data-browserhive-snapshot` に持つ。素の ReplayWeb.page は属性を読まず、枠に記録した元の文書を出す。
 // capture-player は写しの文書の枠を子の写しで開く。
 //
-// 見本は、取り込みにその場のスクリプトを 1 本付けて撮った。スクリプトは名前が right の枠の文書に印の文
+// 見本は、取り込みにその場の capture script を 1 本付けて撮った。capture script は名前が right の枠の文書に印の文
 // 「frame snapshot marker」（`data-capture-script="marker"`）を、menu・left の枠の文書に「menu snapshot marker」
 // （`data-capture-script="menu-marker"`）を足す。記録した元の文書には印が無く、after-behaviors の子の写しにだけ在る。
 // だから「枠に印が出る」は、枠が子の写しで開いたときだけ成り立つ。
@@ -102,7 +102,7 @@ const textOf = (frame: Frame): Promise<string> =>
     `${frame.url()} の文字`,
   );
 
-/** 再生の帯の、スクリプトが足した要素の印（shadow DOM の中）。無ければ null */
+/** 再生の帯の、capture scripts が足した要素の印（shadow DOM の中）。無ければ null */
 const marksBadge = (
   page: Page,
 ): Promise<{ text: string; title: string; color: string; background: string } | null> =>
@@ -177,7 +177,7 @@ const afterSent = async (page: Page, frame: Frame): Promise<void> => {
 const shownBadge = (page: Page, text: string) =>
   waitFor(
     () => marksBadge(page).then((b) => (b?.text === text ? b : undefined)),
-    `スクリプトが足した要素の印「${text}」`,
+    `capture scripts が足した要素の印「${text}」`,
   );
 
 describe("写しの文書の枠", () => {
@@ -217,7 +217,7 @@ describe("写しの文書の枠", () => {
     await page.browserContext().close();
   });
 
-  it("after-load の写しの枠は after-load の子の写しで開く（スクリプトの前なので印は無い）", async () => {
+  it("after-load の写しの枠は after-load の子の写しで開く（capture scripts の前なので印は無い）", async () => {
     const page = await open("frame-snapshots", snapshot("after-load", PORTRAIT));
     const right = await frameOf(page, child("after-load", 2, `${PORTRAIT}top.htm`));
     const text = await textOf(right);
@@ -265,7 +265,7 @@ describe("写しの文書の枠", () => {
     await nested.browserContext().close();
   });
 
-  it("合本の頁の一覧に写しの行が並び、portrait のスクリプトの後の写しを押すと、右の枠に子の写しにだけ在る印の文が出る", async () => {
+  it("合本の頁の一覧に写しの行が並び、portrait の capture scripts の後の写しを押すと、右の枠に子の写しにだけ在る印の文が出る", async () => {
     // 一覧の 1 ページ目は replay.json の initialPages から作られる（CAPTURE-456 から写しの行も入る）。行のリンクは行の
     // filename から付いた waczhash を持ち、押すとその WACZ を名指して開く。portrait.wacz は名前の順で 4 番目。
     // ただし一覧を開くと、写しの行の filename が無くても portrait.wacz は別の道（文書の行の keys に当たる `/q/?url=`）で
@@ -327,20 +327,20 @@ describe("写しの文書の枠", () => {
   });
 });
 
-describe("スクリプトが足した要素の数", () => {
+describe("capture scripts が足した要素の数", () => {
   it("写しの頁では、主と枠の中の子の写しの数を足して帯に出す", async () => {
     const page = await open("frame-snapshots", snapshot("after-behaviors", PORTRAIT));
-    const badge = await shownBadge(page, "Script-added elements: 2");
+    const badge = await shownBadge(page, "Elements added by capture scripts: 2");
     // 主の写し（frameset）には 0、左の子に menu-marker 1、右の子に marker 1
-    expect(badge.text).toBe("Script-added elements: 2");
+    expect(badge.text).toBe("Elements added by capture scripts: 2");
     expect(badge.title).toBe("marker 1 · menu-marker 1");
     await page.browserContext().close();
   });
 
   it("入れ子でも、孫の写しまで足す", async () => {
     const page = await open("frame-snapshots-nested", snapshot("after-behaviors", NESTED));
-    const badge = await shownBadge(page, "Script-added elements: 2");
-    expect(badge.text).toBe("Script-added elements: 2");
+    const badge = await shownBadge(page, "Elements added by capture scripts: 2");
+    expect(badge.text).toBe("Elements added by capture scripts: 2");
     expect(badge.title).toBe("marker 1 · menu-marker 1");
     await page.browserContext().close();
   });
@@ -368,8 +368,8 @@ describe("スクリプトが足した要素の数", () => {
   // CAPTURE-422 で、ダークモードの字が地と同じ白になって消えた。帯の印も字と地の色を決める
   it.each(["light", "dark"] as const)("%s モードでも、印の字は地と違う色", async (scheme) => {
     const page = await open("frame-snapshots", snapshot("after-behaviors", PORTRAIT), { scheme });
-    const badge = await shownBadge(page, "Script-added elements: 2");
-    expect(badge.text).toBe("Script-added elements: 2");
+    const badge = await shownBadge(page, "Elements added by capture scripts: 2");
+    expect(badge.text).toBe("Elements added by capture scripts: 2");
     expect(badge.color).not.toBe(badge.background);
     await page.browserContext().close();
   });

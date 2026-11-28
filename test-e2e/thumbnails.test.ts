@@ -168,7 +168,7 @@ describe("BrowserHive の節目のスクリーンショット", () => {
     const page = await openList("with-screenshots.wacz");
     const rows = await settledRows(page, 3);
     expect(rowOf(rows, "Snapshot after load: search").image?.sha256).toBe(SHOT.searchAfterLoad);
-    expect(rowOf(rows, "Snapshot after scripts: search").image?.sha256).toBe(
+    expect(rowOf(rows, "Snapshot after capture scripts: search").image?.sha256).toBe(
       SHOT.searchAfterBehaviors,
     );
     await page.browserContext().close();

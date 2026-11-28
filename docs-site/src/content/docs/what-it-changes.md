@@ -19,7 +19,9 @@ whether it matched, and an unsigned archive as "not signed".
 ## Snapshots in the page list
 
 In the page list, a BrowserHive snapshot shows its stage ("Snapshot after
-load") and the original document URL instead of its `urn:`.
+load") and the original document URL instead of its `urn:`. The stage after the
+capture scripts is `after-capture-scripts` from BrowserHive WACZ Profile 1.30.0
+and `after-behaviors` before it; both show as "Snapshot after capture scripts".
 
 ## Frames in a snapshot
 
@@ -43,8 +45,8 @@ its WACZ, and its child snapshots are read from the same WACZ.
 When a snapshot, or a child snapshot in one of its frames, holds elements a
 capture script added (`data-capture-script`, the attribute the scripts in
 [capture-scripts](https://github.com/uraitakahito/capture-scripts) put on what
-they add), the replay bar says "Script-added elements: N", with the count per
-script on hover and click.
+they add), the replay bar says "Elements added by capture scripts: N", with
+the count per capture script on hover and click.
 
 ## Screenshots in the page list
 
