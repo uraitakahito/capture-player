@@ -3,7 +3,7 @@ title: capture-player
 description: BrowserHive WACZ を再生する Web Capture のビューア。ReplayWeb.page と wabac.js を改変した物です。
 ---
 
-capture-player は、BrowserHive WACZ（Web Archive Collection Zipped）を再生する Web Capture のビューアです。BrowserHive WACZ は、[BrowserHive WACZ Profile](https://uraitakahito.github.io/browserhive-specs/wacz-profile/1.27.0/) に沿った WACZ です。
+capture-player は、BrowserHive WACZ（Web Archive Collection Zipped）を再生する Web Capture のビューアです。BrowserHive WACZ は、[BrowserHive WACZ Profile](https://uraitakahito.github.io/browserhive-specs/wacz-profile/1.28.0/) に沿った WACZ です。
 
 Webrecorder の [ReplayWeb.page](https://github.com/webrecorder/replayweb.page) 2.5.0 と [wabac.js](https://github.com/webrecorder/wabac.js) 2.27.1 を**改変した物**で、小さな Node の server が配ります。
 
