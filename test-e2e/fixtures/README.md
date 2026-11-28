@@ -1,7 +1,7 @@
 # e2e の見本
 
 最初の表の見本は、BrowserHive が dev の一式（capture-fixtures の頁）で撮った WACZ を 2026-11-12 に保管庫から読んだ物と、
-それを替えた物。後ろの節（合本・乱数の控え・撮った時の窓）の見本は、撮り方と日が違うので、由来を節ごとに書く。
+それを替えた物。後ろの節（合本・乱数の記録・撮った時の窓）の見本は、撮り方と日が違うので、由来を節ごとに書く。
 
 | ファイル                  | 元                                                                                           | 何を見るか                                                        |
 | ------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -24,7 +24,7 @@
 
 **並びが要。** 押す先の `leaf-2.wacz` は、`resources` では 6 番目、名前の順では 5 番目に在る。上流の wabac.js（`upstream/wabac.js/src/wacz/multiwacz.ts` の `getWACZFilesToTry`・:1408-1499）は、頁の問い（`pagesQueryUrl`）を使わない要求では、要求が名指す WACZ のクロールに起点の頁（`isSeed`）が在ればその WACZ を（:1480-1488）、無ければ WACZ の一覧の先頭 3 本（`maxFallbackLookups`・:107・:1491-1498）だけを探す。この 3 本は `resources` の順ではなく **WACZ の名前の順** で選ばれる。2026-11-14 に CAPTURE-245 の改変を外して確かめた: いまの見本は frameset・hub・iframe の 3 本を読んで Not Found／`leaf-2.wacz` を名前の順で先頭に来る名前にすると（`resources` では 6 番目のまま）見つかる／名前を替えずに `resources` の 1 番目に動かしても Not Found。同じ context で 2 度目に開いても同じ。`<frame>` の中の遷移は、実測ではこの先頭 3 本の道に入った。名前の順で 3 本以内に置くと直しが無くても見つかり、試験が反証にならない。
 
-## 乱数の控え（`random-*.wacz`・CAPTURE-378）
+## 乱数の記録（`random-*.wacz`・CAPTURE-378）
 
 `random.test.ts` が使う。4 本は BrowserHive の e2e が dev の一式（capture-fixtures の `/random/*`）で撮った本物
 （BrowserHive v31.1.0 の build `ef8bf97e`・`datapackage.json` の `software` は `browserhive/31.0.0+5.gef8bf97e`・
@@ -42,8 +42,8 @@ WACZ Profile 1.26.0）。2026-11-14 に保管庫から写した（撮ったの�
 | `random-none.wacz`     | `random-pick.wacz` から `random/values.jsonl`・`random/recorder.js` と、その `resources` の行と、`browserhive:capture.random` を抜いた物。`datapackage-digest.json` の hash は合わなくなる | 今までどおり wombat の固定の種の 712229。挿し込みに script が無い |
 | `random-tampered.wacz` | `random-pick.wacz` の `random/values.jsonl` の値の最後の 1 字を変えた物（0.9604632342795921 → …922。JSON のまま、n は同じ）。`resources` の hash はそのまま                                | hash が合わないので使わない（712229）                             |
 
-控えが無いときに wombat の固定の種（種は文書の記録の時刻の秒）が出す数は、`random.test.ts` の「見本の前提」が
-計算し、控えから決まる数と違うことを確かめる。
+乱数の記録が無いときに wombat の固定の種（種は文書の記録の時刻の秒）が出す数は、`random.test.ts` の「見本の前提」が
+計算し、乱数の記録から決まる数と違うことを確かめる。
 
 ## 撮った時の窓（`viewport-*.wacz`・`bucket/viewport/`・CAPTURE-422）
 
@@ -59,7 +59,7 @@ WACZ Profile 1.26.0）。2026-11-14 に保管庫から写した（撮ったの�
 | `viewport-js-dpr.wacz`         | `/viewport/js-dpr`・1280×800・DPR [1]                                  | `js-1x`            |
 | `viewport-js-height.wacz`      | `/viewport/js-height`・1280×800・DPR [1]                               | `jsheight-tall`    |
 | `viewport-image-set.wacz`      | `/viewport/image-set`・1280×800・DPR [1]                               | `set-1x`・`res-1x` |
-| `viewport-js-dpr-twice.wacz`   | `/viewport/js-dpr`・1280×800・DPR [1, 2]（乱数の控えなし）             | `js-1x`・`js-2x`   |
+| `viewport-js-dpr-twice.wacz`   | `/viewport/js-dpr`・1280×800・DPR [1, 2]（乱数の記録なし）             | `js-1x`・`js-2x`   |
 | `viewport-narrow.wacz`         | `/viewport/picture-width`・1000×700・DPR [1]（窓の決め打ちを見分ける） | `width-m-1x`       |
 
 `bucket/viewport/picture-width.wacz`・`narrow.wacz` は上の 2 本の写しで、
@@ -72,7 +72,7 @@ WACZ Profile 1.26.0）。2026-11-14 に保管庫から写した（撮ったの�
 （BrowserHive v30.2.0 の e2e が capture-fixtures を 2026-11-13 に撮った WACZ。撮り方は capture-workbench の
 `sandbox/samples/SOURCE.md` の「BrowserHive の e2e の取り込みの 3 本」）。sha256 は SOURCE.md の値と照らした。
 `thumbnail-only.wacz` と `bucket/thumbnails/pick-no-shot.wacz` は `random-pick.wacz` から
-`node test-e2e/fixtures/derive-random.ts` で作る（「乱数の控え」と同じ作り方）。
+`node test-e2e/fixtures/derive-random.ts` で作る（「乱数の記録」と同じ作り方）。
 
 | ファイル                              | 元                                                                                                                                                                                                                                                                                  | 何を見るか                                                                     |
 | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
