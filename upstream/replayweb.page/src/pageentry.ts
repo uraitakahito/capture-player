@@ -571,9 +571,12 @@ export { PageEntry };
 const SNAPSHOT_URN = /^urn:browserhive:snapshot:([a-z-]+):(.+)$/;
 // capture-player: 2026-11-15 に足した。節目のスクリーンショットの URI の頭（後ろに <時点>:<文書の URL>。CAPTURE-440）
 const SCREENSHOT_URN = "urn:browserhive:screenshot:";
+// 2026-11-28（CAPTURE-506）: capture scripts の後の時点は、BrowserHive WACZ Profile 1.30.0 から after-capture-scripts、
+// それより前の記録は after-behaviors。どちらも同じ題にする（撮った WACZ は変えないので、古い名もずっと読む）
 const STAGE_LABELS: Record<string, string> = {
   "after-load": "Snapshot after load",
-  "after-behaviors": "Snapshot after scripts",
+  "after-capture-scripts": "Snapshot after capture scripts",
+  "after-behaviors": "Snapshot after capture scripts",
 };
 
 export function snapshotOf(

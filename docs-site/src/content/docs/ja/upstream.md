@@ -20,7 +20,7 @@ capture-player の直しには、見え方を変える物があります。Brows
 
 頁の一覧の絵も違います（CAPTURE-440）。上流の一覧は絵を `urn:thumbnail:<頁の URL>` の名前だけで引きますが、BrowserHive WACZ に在るのは節目のスクリーンショット（`urn:browserhive:screenshot:<時点>:<文書の URL>`）です。replayweb-player（手元の dev の一式では 8899 番）の一覧には絵が出ず、capture-player（8897 番）では文書の行に after-load の絵、写しの行に同じ時点の絵が出ます。
 
-写しの枠も違います（CAPTURE-147）。BrowserHive v31.2.0 からの写し（`urn:browserhive:snapshot:`）の中の `<frame>`・`<iframe>` は、`src` を元のまま残し、子フレームの写しの URI（`urn:browserhive:frame-snapshot:`）を `data-browserhive-snapshot` に持ちます（[BrowserHive WARC Profile 1.5.0](https://uraitakahito.github.io/browserhive-warc-spec/1.5.0/#frame-snapshot-references)）。replayweb-player は属性を読まず、枠に記録した元の文書（読み込んだ時の物）を出します。capture-player は枠を子の写しで開くので、スクリプトが枠の中に足した物は capture-player にだけ出ます。写しにスクリプトが足した要素（`data-capture-script`）が在れば、capture-player の再生の帯に「Script-added elements: N」と出ます。
+写しの枠も違います（CAPTURE-147）。BrowserHive v31.2.0 からの写し（`urn:browserhive:snapshot:`）の中の `<frame>`・`<iframe>` は、`src` を元のまま残し、子フレームの写しの URI（`urn:browserhive:frame-snapshot:`）を `data-browserhive-snapshot` に持ちます（[BrowserHive WARC Profile 1.5.0](https://uraitakahito.github.io/browserhive-warc-spec/1.5.0/#frame-snapshot-references)）。replayweb-player は属性を読まず、枠に記録した元の文書（読み込んだ時の物）を出します。capture-player は枠を子の写しで開くので、capture scripts が枠の中に足した物は capture-player にだけ出ます。写しに capture scripts が足した要素（`data-capture-script`）が在れば、capture-player の再生の帯に「Elements added by capture scripts: N」と出ます。
 
 ## 上流の `static/wombat*.js` は配っていない
 
