@@ -14,7 +14,7 @@ capture-player は、Webrecorder の [wabac.js](https://github.com/webrecorder/w
 
 [replayweb-player](https://github.com/uraitakahito/replayweb-player)（改変していない ReplayWeb.page を配る、互換の再生）と同じ版にしてあります。2 つのリンクの見え方の差が、上流の版の差ではなく capture-player の直しだけになるようにするためです。
 
-capture-player の直しには、見え方を変える物があります。BrowserHive WACZ が乱数の控え（`random/values.jsonl`）を持つとき、capture-player は頁のスクリプトに控えの値を返します（CAPTURE-378）。乱数で見せる物を選ぶ頁は、replayweb-player では撮った時と違う物を選び直し、capture-player では撮った時に選んだ物を選ぶことがあります。2 つのリンクで頁が違って見えるのは、この直しのためで、版の差ではありません。
+capture-player の直しには、見え方を変える物があります。BrowserHive WACZ が乱数の記録（`random/values.jsonl`）を持つとき、capture-player は頁のスクリプトに記録した値を返します（CAPTURE-378）。乱数で見せる物を選ぶ頁は、replayweb-player では撮った時と違う物を選び直し、capture-player では撮った時に選んだ物を選ぶことがあります。2 つのリンクで頁が違って見えるのは、この直しのためで、版の差ではありません。
 
 もう 1 つ、capture-player は BrowserHive WACZ の頁を、撮った時の窓（`datapackage.json` の `browserhive:capture.settings` の `viewport` と `devicePixelRatios`）で開きます（CAPTURE-422）。窓の幅・高さ・DPR で絵の版を選ぶ頁は、replayweb-player では見る人の窓の版を求めて記録に無いことがあり、capture-player では撮った時の版を求めます。
 

@@ -1,8 +1,8 @@
-// capture-player: 2026-11-14 に足した（CAPTURE-378）。BrowserHive WACZ Profile 1.26.0 の乱数の控え
+// capture-player: 2026-11-14 に足した（CAPTURE-378）。BrowserHive WACZ Profile 1.26.0 の乱数の記録
 // （`random/values.jsonl`）を読み、再生する文書の行を選び、頁に渡す挿し込みを組む。
 // 仕様: https://uraitakahito.github.io/browserhive-specs/wacz-profile/1.26.0/#random-reading
 //
-// ここは純粋な関数と、WACZ から控えを読む関数だけ。頁の中で値を返すのは rewrite/capturePlayerRandomInject.ts。
+// ここは純粋な関数と、WACZ から乱数の記録を読む関数だけ。頁の中で値を返すのは rewrite/capturePlayerRandomInject.ts。
 // 頁の中の側もこのファイルの関数（callerFromStack）を使うので、重い物を import しない。
 // `random/recorder.js` は読まず、走らせない（仕様が禁じる）。
 // 2026-11-14（CAPTURE-422）: datapackage.json は capturePlayerEnv.ts が WACZ ごとに一度だけ読み、撮った時の窓と分け合う。
@@ -16,7 +16,7 @@ import {
 
 export const RANDOM_VALUES_PATH = "random/values.jsonl";
 export const RANDOM_PROFILE = "browserhive:random/1";
-/** これより大きい控えは読まない（再生の一回ごとに文書へ渡すので、大きな物は頁を重くする） */
+/** これより大きい乱数の記録は読まない（再生の一回ごとに文書へ渡すので、大きな物は頁を重くする） */
 export const RANDOM_MAX_BYTES = 4 * 1024 * 1024;
 
 export type RandomApi = "Math.random" | "crypto.getRandomValues" | "crypto.randomUUID";
@@ -275,7 +275,7 @@ function hex(buf: ArrayBuffer): string {
 
 /**
  * datapackage.json が `random/values.jsonl` を resources に載せ、`browserhive:capture.random.recorded` が true で、
- * 中身の sha256 が載っている hash と同じときだけ、読んだ行を返す。どれかが欠ければ null（控えを使わない）。
+ * 中身の sha256 が載っている hash と同じときだけ、読んだ行を返す。どれかが欠ければ null（乱数の記録を使わない）。
  */
 export async function loadRandomLines(
   store: RandomSource,
@@ -315,7 +315,7 @@ export async function loadRandomLines(
 
 const cache = new WeakMap<object, Map<string, Promise<Line[] | null>>>();
 
-/** 同じ WACZ の控えは一度だけ読む。読めなければ null（再生は控えなしで続ける） */
+/** 同じ WACZ の乱数の記録は一度だけ読む。読めなければ null（再生は乱数の記録なしで続ける） */
 export function getRandomLines(store: RandomSource, waczname: string): Promise<Line[] | null> {
   let byName = cache.get(store);
   if (!byName) {

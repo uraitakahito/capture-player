@@ -1,4 +1,4 @@
-// capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の控えの行の選び方と、head に足す断片。
+// capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の記録の行の選び方と、head に足す断片。
 import test from "ava";
 
 import {
@@ -68,7 +68,7 @@ test("url の違う文書しか無ければ選ばない", (t) => {
   t.is(selectRandomDocument(lines, PICK, new Date()), null);
 });
 
-test("控えが無ければ選ばない", (t) => {
+test("乱数の記録が無ければ選ばない", (t) => {
   t.is(selectRandomDocument([], PICK, new Date()), null);
   t.is(selectRandomDocument(parseRandomLines(""), PICK, new Date()), null);
 });

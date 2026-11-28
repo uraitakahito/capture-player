@@ -353,7 +353,7 @@ export class Collection {
     const basePrefixTS = basePrefix + requestTS;
     const arResponse = response;
 
-    // capture-player: 2026-11-14 に改変（CAPTURE-378）。乱数の控えから選んだ値を渡す断片（無ければ空）
+    // capture-player: 2026-11-14 に改変（CAPTURE-378）。乱数の記録から選んだ値を渡す断片（無ければ空）
     let randomInsert = "";
     // capture-player: 2026-11-14 に足した（CAPTURE-422）。撮った時の DPR と、画面へ環境を知らせる断片（記録が無ければ null）
     let capture: { pixelRatio: number; insert: string } | null = null;
@@ -414,8 +414,8 @@ export class Collection {
 
     const rewriter = new Rewriter(rewriteOpts);
 
-    // capture-player: 2026-11-14 に足した（CAPTURE-378）。head に挿し込む HTML の文書だけ、その記録の WACZ の
-    // 乱数の控えから、この文書の行を選ぶ。条件は rewriter.rewrite が rewriteHtml を呼ぶ条件と同じ。
+    // capture-player: 2026-11-14 に足した（CAPTURE-378）。head に挿し込む HTML の文書だけ、その応答の記録を持つ WACZ の
+    // 乱数の記録から、この文書の行を選ぶ。条件は rewriter.rewrite が rewriteHtml を呼ぶ条件と同じ。
     // 2026-11-14（CAPTURE-422）: 同じ WACZ の datapackage.json から撮った時の窓と DPR も読み、文書の DPR を決める。
     if (
       !noRewrite &&

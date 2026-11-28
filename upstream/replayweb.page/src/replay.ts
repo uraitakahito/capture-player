@@ -91,7 +91,7 @@ class Replay extends LitElement {
 
   private hiliter: HoverHiliter | null = null;
 
-  // capture-player: 2026-11-14 に足した（CAPTURE-378）。再生の中の文書（frame の中も）が送る、乱数の控えから
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。再生の中の文書（frame の中も）が送る、乱数の記録から
   // 返した数を、送った窓ごとに、送った文書と一緒に持つ。文書が替わった窓の数は捨てる。帯に出すのは足した数
   private readonly randomByWindow = new Map<
     Window,
@@ -327,7 +327,7 @@ class Replay extends LitElement {
       return;
     }
 
-    // capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の控えの数は、再生の中の frame の文書からも届く。
+    // capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の記録の数は、再生の中の frame の文書からも届く。
     // UI で使い、親の窓へは渡さない
     if (iframe && event.data?.wb_type === "bh-random") {
       const source = event.source as Window | null;

@@ -2,7 +2,7 @@
 //
 //   node test-e2e/fixtures/derive-random.ts
 //
-// 乱数の控え（CAPTURE-378）の 2 本:
+// 乱数の記録（CAPTURE-378）の 2 本:
 // - random-none.wacz: random/values.jsonl・random/recorder.js と、その resources の行と、
 //   browserhive:capture.random を抜いた物（no-browserhive.wacz と同じく、datapackage-digest.json の hash は
 //   合わなくなる）

@@ -1,9 +1,9 @@
-// 乱数の控え（CAPTURE-378）: 同じスクリプトの n 回目の Math.random・crypto.getRandomValues に、控えの n 番目の値を
-// 返すか。見本は test-e2e/fixtures/README.md の「乱数の控え」（BrowserHive v31.1.0 の e2e が撮った本物と、
+// 乱数の記録（CAPTURE-378）: 同じスクリプトの n 回目の Math.random・crypto.getRandomValues に、その記録の n 番目の値を
+// 返すか。見本は test-e2e/fixtures/README.md の「乱数の記録」（BrowserHive v31.1.0 の e2e が撮った本物と、
 // そこから作った 2 本）。
 //
 // 見本の頁は capture-fixtures の /random/pick と /random/bytes。1 回引いた値を 0 … 999999 の数 n にし、
-// /random/img/<n>.svg の絵を足して題を `pick <n>` にする。控えが無ければ wombat の固定の種の Math.random
+// /random/img/<n>.svg の絵を足して題を `pick <n>` にする。乱数の記録が無ければ wombat の固定の種の Math.random
 // （種は文書の時刻の秒）が値を出す（getRandomValues もそれで埋める）。
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Server } from "node:http";
@@ -17,7 +17,7 @@ const PICK = `${HOST}/random/pick`;
 const FRAME = `${HOST}/random/frame`;
 const BYTES = `${HOST}/random/bytes`;
 
-// 文書の記録の時刻（index.cdxj）と、控えの値から決まる数
+// 文書の記録の時刻（index.cdxj）と、乱数の記録の値から決まる数
 const TS = {
   pick: "20261114084732",
   frame: "20261114084735",
@@ -117,7 +117,7 @@ const pick = async (
   return { page, picked: await pickedIn(await frameOf(page, url)) };
 };
 
-/** 再生の帯の、乱数の控えの印（shadow DOM の中）。無ければ null */
+/** 再生の帯の、乱数の記録の印（shadow DOM の中）。無ければ null */
 const badge = (page: Page): Promise<{ text: string; title: string } | null> =>
   page.evaluate(() => {
     const find = (root: Document | ShadowRoot): Element | null => {
@@ -144,7 +144,7 @@ const shownBadge = (page: Page) =>
   waitFor(() => badge(page).then((b) => b ?? undefined), "乱数の印");
 
 describe("見本の前提", () => {
-  it("控えから決まる数は、wombat の固定の種が出す数と違う", () => {
+  it("乱数の記録から決まる数は、wombat の固定の種が出す数と違う", () => {
     expect(RECORDED).toEqual({
       pick: 960463,
       frame: 705437,
@@ -162,8 +162,8 @@ describe("見本の前提", () => {
   });
 });
 
-describe("乱数の控え", () => {
-  it("控えのある文書では、pick.js の 1 回目の Math.random に控えの値を返し、その絵が出る", async () => {
+describe("乱数の記録", () => {
+  it("乱数の記録のある文書では、pick.js の 1 回目の Math.random に記録した値を返し、その絵が出る", async () => {
     const { picked } = await pick("random-pick", PICK, TS.pick);
     expect(picked.n).toBe(RECORDED.pick);
     expect(picked.src).toContain(`/random/img/${String(RECORDED.pick)}.svg`);
@@ -171,7 +171,7 @@ describe("乱数の控え", () => {
     expect(picked.hasScript).toBe(true);
   });
 
-  it("控えの値を返した文書では、再生の帯に印と数を出す", async () => {
+  it("記録した値を返した文書では、再生の帯に印と数を出す", async () => {
     const { page } = await pick("random-pick", PICK, TS.pick);
     const shown = await shownBadge(page);
     expect(shown.text).toBe("Random: recorded values");
@@ -192,7 +192,7 @@ describe("乱数の控え", () => {
     expect((await shownBadge(page)).title).toBe("recorded 1 · returned 1 · fallback 0");
   });
 
-  it("crypto.getRandomValues には、控えの 4 バイトを返す", async () => {
+  it("crypto.getRandomValues には、記録した 4 バイトを返す", async () => {
     const { page, picked } = await pick("random-bytes", BYTES, TS.bytes);
     expect(picked.n).toBe(RECORDED.bytes);
     expect(picked.src).toContain(`/random/img/${String(RECORDED.bytes)}.svg`);
@@ -212,7 +212,7 @@ describe("乱数の控え", () => {
     expect(picked.loaded).toBe(true);
   });
 
-  it("控えの無い WACZ は今までどおり wombat の固定の種の値を使い、印を出さない", async () => {
+  it("乱数の記録の無い WACZ は今までどおり wombat の固定の種の値を使い、印を出さない", async () => {
     const { page, picked } = await pick("random-none", PICK, TS.pick);
     expect(picked.n).toBe(lcgPick(TS.pick));
     expect(picked.src).toContain(`/random/img/${String(lcgPick(TS.pick))}.svg`);
@@ -220,7 +220,7 @@ describe("乱数の控え", () => {
     expect(await badge(page)).toBeNull();
   });
 
-  it("hash の合わない控えは使わない", async () => {
+  it("hash の合わない乱数の記録は使わない", async () => {
     const { page, picked } = await pick("random-tampered", PICK, TS.pick);
     expect(picked.n).toBe(lcgPick(TS.pick));
     expect(picked.hasScript).toBe(false);

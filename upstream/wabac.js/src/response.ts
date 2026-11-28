@@ -132,7 +132,7 @@ class ArchiveResponse {
   noRW: boolean;
   isLive: boolean;
   updateTS: string | null;
-  // capture-player: 2026-11-14 に足した（CAPTURE-378）。応答の記録を持つ WACZ の名前。乱数の控えをそこから読む
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。応答の記録を持つ WACZ の名前。乱数の記録をそこから読む
   waczName: string | null;
 
   clonedResponse: Response | null = null;

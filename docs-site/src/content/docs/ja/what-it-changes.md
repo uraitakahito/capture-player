@@ -42,11 +42,11 @@ BrowserHive の写しは、枠を BrowserHive がその枠を撮った写しで�
 
 Archive Info に BrowserHive の欄があります。すべての本文を残したか、何を残さなかったか、文書、写し、viewport、署名の方針、BrowserHive の版とブラウザ、BrowserHive WACZ Profile へのリンク、WebRTC の通信は止めないという知らせです。
 
-## 控えた乱数
+## 記録した乱数
 
-撮った頁のスクリプトが受け取った乱数を BrowserHive WACZ が持つとき（`random/values.jsonl`、[BrowserHive WACZ Profile 1.26.0](https://uraitakahito.github.io/browserhive-specs/wacz-profile/1.26.0/#random-reading)）、再生した文書の中でスクリプトが `Math.random`・`crypto.getRandomValues`・`crypto.randomUUID` を呼ぶ n 回目には、そのスクリプトと関数について控えた n 番目の値を返します。乱数で見せる物を選ぶ頁は、撮った時に選んだ物を選べます。控えの無い呼び出しには、改変していない ReplayWeb.page と同じ値を返します。
+撮った頁のスクリプトが受け取った乱数を BrowserHive WACZ が持つとき（`random/values.jsonl`、[BrowserHive WACZ Profile 1.26.0](https://uraitakahito.github.io/browserhive-specs/wacz-profile/1.26.0/#random-reading)）、再生した文書の中でスクリプトが `Math.random`・`crypto.getRandomValues`・`crypto.randomUUID` を呼ぶ n 回目には、そのスクリプトと関数について記録した n 番目の値を返します。乱数で見せる物を選ぶ頁は、撮った時に選んだ物を選べます。記録した値の無い呼び出しには、改変していない ReplayWeb.page と同じ値を返します。
 
-値を使うのは、sha256 が `datapackage.json` と合うときだけです。`random/recorder.js` は走らせません。頁が控えの値を 1 つでも受け取ると、再生の帯に「Random: recorded values」と出て、hover で数が出ます。
+値を使うのは、sha256 が `datapackage.json` と合うときだけです。`random/recorder.js` は走らせません。頁が乱数の記録の値を 1 つでも受け取ると、再生の帯に「Random: recorded values」と出て、hover で数が出ます。
 
 これで再生が撮った時と同じになるわけではありません。ほかの呼び出しも、ほかの物も、再生の側から来ます。
 
