@@ -1,0 +1,20 @@
+// roster（uraitakahito/roster）の担当が push するときの設定。書いていない欄は既定のまま。
+{
+  // roster push が、push の前に流す確かめ（書き方は roster の docs-site の設定のページの「push の前の確かめ」）。
+  // CI（ci.yml の check・site.yml）の中で、通信に依らず手元で流せる物。
+  // 入れない物: ci.yml の viewer（Node 24 と yarn の install は通信に依り、test:e2e は Chrome が要る）・build（docker）・audit（通信に依る）・release-version（PR の題を見る）。
+  // 要る用意（worktree を作ったら、roster push の前に）: 根で pnpm install（docs-site も workspace の中）。無いと、コードに依らず確かめが落ちる。試験は openssl を使い、check:upstream は git の履歴を全部読む（浅い clone では落ちる）。
+  // roster push は origin/main のこの欄を読むので、変えた一覧は merge の後から効く。
+  "push": {
+    "checks": [
+      {
+        "name": "check",
+        "run": ["pnpm", "run", "check"],
+      },
+      {
+        "name": "site",
+        "run": ["pnpm", "run", "site:check"],
+      },
+    ],
+  },
+}
