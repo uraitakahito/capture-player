@@ -48,7 +48,7 @@ to the bottom), and copies the page again.
     <text x="380" y="222" text-anchor="middle" font-size="11" style="fill:var(--sl-color-gray-3)">① is rebuilt from these recorded responses when you open it; ② and ③ are shown as they were copied</text>
   </g>
 </svg>
-<figcaption>One capture. ① is named by the start of the capture; ② and ③ by the moment each copy was made.</figcaption>
+<figcaption>One capture. ① is dated at the start of the capture; ② and ③ at the moment each copy was made.</figcaption>
 </figure>
 
 "Scripts" in "Snapshot after scripts" means the **behaviors BrowserHive ran**,
@@ -58,13 +58,13 @@ only ① and ②.
 
 ## What each one is
 
-|                         | ① the document                                                                                | ② Snapshot after load                                                                   | ③ Snapshot after scripts                                          |
-| ----------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| What it is              | The page **rebuilt** from the recorded responses                                              | A **copy** of the page as the browser held it once it had settled, before any scrolling | A **copy** of the page as the browser held it after the behaviors |
-| Time in the list        | When the capture started                                                                      | When the copy was made                                                                  | When the copy was made                                            |
-| The page's JavaScript   | **Runs** in your browser. Videos, menus and carousels move                                    | **Does not run.** BrowserHive took the scripts out when it made the copy                | **Does not run**                                                  |
-| Images below the fold   | Shown if the capture recorded them (the behaviors usually make the page load them)            | Often **missing**, if the page loads images only when they scroll into view             | Shown, once the behaviors scrolled them into view                 |
-| Can differ from capture | Yes. It is put together again each time you open it, so it is not always what the page showed | No. It is what the browser held at that moment                                          | No. It is what the browser held at that moment                    |
+|                         | ① the document                                                                                | ② Snapshot after load                                                                   | ③ Snapshot after scripts                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| What it is              | The page **rebuilt** from the recorded responses                                              | A **copy** of the page as the browser held it once it had settled, before any scrolling | A **copy** of the page as the browser held it after the behaviors                |
+| Time in the list        | When the capture started                                                                      | When the copy was made                                                                  | When the copy was made                                                           |
+| The page's JavaScript   | **Runs** in your browser. Videos, menus and carousels move                                    | **Does not run.** BrowserHive took the scripts out when it made the copy                | **Does not run**                                                                 |
+| Images below the fold   | Shown if the capture recorded them (the behaviors usually make the page load them)            | Often **missing**, if the page loads images only when they scroll into view             | Shown, once the behaviors scrolled them into view                                |
+| Can differ from capture | Yes. It is put together again each time you open it, so it is not always what the page showed | The HTML is as copied. Your browser draws it with the recorded images and styles        | The HTML is as copied. Your browser draws it with the recorded images and styles |
 
 The thumbnails in the list are the screenshots BrowserHive took at ② and ③
 (the document uses the one from ②). A screenshot shows only the top of the
@@ -101,29 +101,38 @@ because a snapshot is not a response from the original URL.
 
 ## Which one to look at
 
-| You want to know                                                                                      | Look at                  |
-| ----------------------------------------------------------------------------------------------------- | ------------------------ |
-| How the page behaved: follow links, open menus, play videos                                           | ① the document           |
-| What a visitor saw on arrival, before scrolling                                                       | ② Snapshot after load    |
-| Everything the page held at the end of the capture, including what appears only after scrolling       | ③ Snapshot after scripts |
-| What the page held, when ① looks broken or blank (its JavaScript does not run well inside the viewer) | ② or ③                   |
+| You want to know                                                                                          | Look at                  |
+| --------------------------------------------------------------------------------------------------------- | ------------------------ |
+| How the page behaved: follow links, open menus, play videos                                               | ① the document           |
+| What a visitor saw before scrolling (after the page settled; a banner the capture dismissed is not in it) | ② Snapshot after load    |
+| Everything the page held at the end of the capture, including what appears only after scrolling           | ③ Snapshot after scripts |
+| What the page held, when ① looks broken or blank (its JavaScript does not run well inside the viewer)     | ② or ③                   |
 
 ### When the capture is evidence
 
-- **What the browser was showing** is recorded by the snapshots (② and ③) and
-  the screenshots taken with them. They were made during the capture and are
-  stored as they were; nothing is recomputed when you view them. If you keep
-  one, keep ③: it is the state at the end of the capture, including content that
-  appears only after scrolling. Add ② when the first view on arrival matters.
-- **What the server sent** is recorded by the responses, and ① shows them by
-  running the page again in your browser. The responses are exactly what was
-  received, but the picture ① draws is made now, by today's run of the page's
+- **What the page looked like** is shown only by the screenshots. A snapshot
+  (② or ③) keeps the page's HTML as the browser held it at that moment, and is
+  not rebuilt from the responses later. When you open it, your browser draws that
+  HTML again with the recorded images, styles and fonts, in the capture window.
+  If you keep one, keep ③: it is the state at the end of the capture, including
+  content that appears only after scrolling. Add ② when the first view matters.
+- **What the server sent** is recorded by the responses. They are kept as
+  received, except where the archive did not keep a body (Archive Info shows how
+  many) or replaced a secret (`browserhive:capture` in `datapackage.json` says
+  so). ① shows them by running the page again in
+  your browser, so the picture ① draws is made now, by today's run of the page's
   JavaScript. Date and random values are replayed, not live, and are not always
   the values the page saw during the capture (see
   [Recorded random values](../what-it-changes/#recorded-random-values)). Do not
   use ① alone to say what was on the screen.
+- The capture itself can change what it keeps. It replaces secret values, may
+  remove a consent banner before it copies the page (the dismissal), and capture
+  scripts may add elements. `browserhive:capture` in `datapackage.json` records
+  this, and capture-player shows added elements in the bar above the page.
 - A screenshot covers only the top of the page. The whole page is in the
-  snapshot.
+  snapshot. Some captures have no screenshots at all (for example when they were
+  not asked for, or when the capture had secrets); `screenshots` in
+  `browserhive:capture` says why.
 - Whether the archive was changed afterwards is a separate question: it is
   answered by the signature (Archive Info shows whether the archive is signed),
   not by which page you look at.
