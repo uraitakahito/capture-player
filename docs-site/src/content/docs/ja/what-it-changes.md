@@ -11,7 +11,7 @@ capture-player は、[wacz-signer](https://github.com/uraitakahito/wacz-signer) 
 
 ## 頁の一覧の写し
 
-頁の一覧で、BrowserHive の写しは `urn:` の代わりに、時点（「Snapshot after load」）と元の文書の URL を出します。capture scripts の後の時点は、BrowserHive WACZ Profile 1.30.0 から `after-capture-scripts`、それより前は `after-behaviors` で、どちらも「Snapshot after capture scripts」と出ます。
+頁の一覧で、BrowserHive の写しは `urn:` の代わりに、時点（「Snapshot after load」）と元の文書の URL を出します。Capture scripts の後の時点は、BrowserHive WACZ Profile 1.30.0 から `after-capture-scripts`、それより前は `after-behaviors` で、どちらも「Snapshot after capture scripts」と出ます。
 
 ## 写しの中の枠
 
@@ -21,7 +21,7 @@ BrowserHive の写しは、枠を BrowserHive がその枠を撮った写しで�
 
 合本では、写しは頁の一覧の行（WACZ を名指す）から開き、子の写しは同じ WACZ から読みます。
 
-## capture scripts が足した要素
+## Capture scripts が足した要素
 
 写しか、その枠の子の写しに、capture scripts が足した要素（`data-capture-script`。[capture-scripts](https://github.com/uraitakahito/capture-scripts) の capture scripts が足した物に付ける属性）が在ると、再生の帯に「Elements added by capture scripts: N」と出ます。capture script ごとの数は、hover と click で出ます。
 

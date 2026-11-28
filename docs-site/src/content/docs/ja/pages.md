@@ -45,13 +45,13 @@ BrowserHive は、ブラウザで頁を開き、ブラウザが受け取った�
 <figcaption>1 回の取り込み。① の時刻は取り込みの始まり、② ③ の時刻はそれぞれを写した時。</figcaption>
 </figure>
 
-capture scripts は、取り込みを頼む側が付けて、BrowserHive が頁の中で走らせるスクリプトです（例えば、下までスクロールする autoscroll）。決まりの上の名は、BrowserHive WACZ Profile 1.30.0 から `after-capture-scripts`、それより前の版では `after-behaviors` です。どちらも「Snapshot after capture scripts」と出ます。capture scripts を走らせなかった取り込みには ③ が無く、頁の一覧は ① と ② だけです。
+Capture scripts は、取り込みを頼む側が付けて、BrowserHive が頁の中で走らせるスクリプトです（例えば、下までスクロールする autoscroll）。決まりの上の名は、BrowserHive WACZ Profile 1.30.0 から `after-capture-scripts`、それより前の版では `after-behaviors` です。どちらも「Snapshot after capture scripts」と出ます。capture scripts を走らせなかった取り込みには ③ が無く、頁の一覧は ① と ② だけです。
 
 ## それぞれが何か
 
 |                      | ① 文書                                                                      | ② Snapshot after load                                                   | ③ Snapshot after capture scripts                                        |
 | -------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| 何か                 | 記録した応答から**作り直した**頁                                            | 頁が落ち着いた時に、ブラウザが持っていた頁の**写し**。スクロールの前    | capture scripts の後に、ブラウザが持っていた頁の**写し**                |
+| 何か                 | 記録した応答から**作り直した**頁                                            | 頁が落ち着いた時に、ブラウザが持っていた頁の**写し**。スクロールの前    | Capture scripts の後に、ブラウザが持っていた頁の**写し**                |
 | 一覧の時刻           | 取り込みを始めた時                                                          | 写した時                                                                | 写した時                                                                |
 | 頁の JavaScript      | 見る人のブラウザで**動く**。動画・メニュー・スライドが動く                  | **動かない**。写す時に BrowserHive がスクリプトを外した                 | **動かない**                                                            |
 | 下の方の画像         | 取り込みが記録していれば出る（たいてい capture scripts が頁に読ませている） | 見える所に来てから画像を読む頁では、**出ない**ことが多い                | capture scripts がスクロールして読ませた後なので、出る                  |
