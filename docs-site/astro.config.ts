@@ -30,6 +30,11 @@ export default defineConfig({
       sidebar: [
         { label: "Overview", translations: { ja: "概要" }, slug: "index" },
         {
+          label: "The pages of one capture",
+          translations: { ja: "1 回の取り込みの頁" },
+          slug: "pages",
+        },
+        {
           label: "What it changes",
           translations: { ja: "上流から変えたこと" },
           slug: "what-it-changes",
