@@ -263,7 +263,7 @@ export class SWReplay {
       type: "application/javascript",
       content: WOMBAT_PROXY,
     });
-    // capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の控えを返す script
+    // capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の記録を返す script
     this.staticData.set(this.staticPrefix + "capturePlayerRandom.js", {
       type: "application/javascript",
       content: CAPTURE_PLAYER_RANDOM,

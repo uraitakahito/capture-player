@@ -222,7 +222,7 @@ class Item extends LitElement {
   @state()
   private tabDataBeforeFullView?: TabData;
 
-  // capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の控えから返した数（replay.ts が送る）
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。乱数の記録から返した数（replay.ts が送る）
   @state()
   private replayRandom: RandomCounts | null = null;
 
@@ -1627,7 +1627,7 @@ class Item extends LitElement {
     `;
   }
 
-  // capture-player: 2026-11-14 に足した（CAPTURE-378）。控えの値を 1 つでも返した文書にだけ出す。
+  // capture-player: 2026-11-14 に足した（CAPTURE-378）。記録した値を 1 つでも返した文書にだけ出す。
   // 再生が撮った時と同じになったとは言わない（返したのは一部の呼び出しで、残りは再生が作った値）
   private renderRandomBadge() {
     const r = this.replayRandom;
@@ -1697,7 +1697,7 @@ class Item extends LitElement {
     const currDateStr = this.ts
       ? dateTimeFormatter.format(tsToDate(this.ts) as Date)
       : "";
-    // capture-player: 2026-11-14 に改変（CAPTURE-378）。時刻の前に、乱数の控えを返したことの印
+    // capture-player: 2026-11-14 に改変（CAPTURE-378）。時刻の前に、乱数の記録を返したことの印
     // 2026-11-15（CAPTURE-147）: その後ろに、写しの文書でスクリプトが足した要素の数
     return html`<div id="datetime" class="control is-hidden-mobile loc-overlay">
       ${this.renderRandomBadge()} ${this.renderScriptMarksBadge()}

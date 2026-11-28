@@ -6,7 +6,7 @@
 // - 再生の枠: 文書が画面（replay.ts）へ `wb_type: "bh-env"` で知らせ、画面が枠の大きさと CSS の zoom を決める
 //
 // 記録の無い WACZ（BrowserHive 以外・値の形が違う）は何も替えない（上流のまま）。ここは純粋な関数と、
-// WACZ から datapackage.json を読む関数だけ。乱数の控え（capturePlayerRandom.ts）も同じ読みを使う。
+// WACZ から datapackage.json を読む関数だけ。乱数の記録（capturePlayerRandom.ts）も同じ読みを使う。
 
 /** これより大きい datapackage.json は読まない */
 export const DATAPACKAGE_MAX_BYTES = 4 * 1024 * 1024;
@@ -134,7 +134,7 @@ export async function getCaptureEnv(
 
 /**
  * 文書の DPR。順は (1) 文書のレコードの `WARC-JSON-Metadata` の `pixelRatio`（上流の wabac.js も読む値）、
- * (2) 乱数の控えの、この文書の行の `dpr`（DPR が 2 つ以上の取り込みでも、文書ごとに正しい）、
+ * (2) 乱数の記録の、この文書の行の `dpr`（DPR が 2 つ以上の取り込みでも、文書ごとに正しい）、
  * (3) `devicePixelRatios` の最初の値。
  */
 export function chooseDocumentDpr(

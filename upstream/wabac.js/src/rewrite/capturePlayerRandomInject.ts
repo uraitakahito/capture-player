@@ -1,7 +1,7 @@
-// capture-player: 2026-11-14 に足した（CAPTURE-378）。`<static>/capturePlayerRandom.js` として配り、乱数の控えの
+// capture-player: 2026-11-14 に足した（CAPTURE-378）。`<static>/capturePlayerRandom.js` として配り、乱数の記録の
 // 行を選べた文書にだけ、wombat の初期化の後に読ませる（collection.ts の makeHeadInsert）。
 //
-// 同じスクリプトが同じ関数を n 回目（1 から）に呼んだら、控えのその呼び手のその関数の n 番目の値を返す
+// 同じスクリプトが同じ関数を n 回目（1 から）に呼んだら、乱数の記録の、その呼び手のその関数の n 番目の値を返す
 // （BrowserHive WACZ Profile 1.26.0 の #random-reading）。値が無い・合わない呼び出しには、wombat が返すはずだった
 // 値（固定の種の Math.random）を返し、返した数とは別に数える。数は文書ごとに UI へ送る（frame の中の文書も。
 // UI が足す）。
@@ -62,7 +62,7 @@ type PageWindow = {
   const staticPrefix = new URL(info.static_prefix || "", win.location.href).href;
   const replayPrefix = info.prefix ? new URL(info.prefix, win.location.href).href : "";
 
-  // wombat の Math.random（種を固定した LCG）。値の無い呼び出しにはこれを返す（控えの無い再生と同じ値の列）
+  // wombat の Math.random（種を固定した LCG）。値の無い呼び出しにはこれを返す（乱数の記録の無い再生と同じ値の列）
   const fallbackRandom = win.Math.random;
   const crypto = win.crypto;
   const cryptoProto = win.Crypto?.prototype;
@@ -105,7 +105,7 @@ type PageWindow = {
     }
   };
 
-  /** この呼び出しに返す控えの値（無ければ null）。呼び出しを 1 回数える */
+  /** この呼び出しに返す、記録した値（無ければ null）。呼び出しを 1 回数える */
   const nextValue = (api: string): RandomValue => {
     const key = `${callerNow()}\n${api}`;
     const n = (counters.get(key) ?? 0) + 1;
@@ -127,7 +127,7 @@ type PageWindow = {
 
   if (crypto && cryptoProto) {
     // wombat と同じ埋め方。wombat の getRandomValues は window.Math.random を読み直すので呼ばない
-    // （呼ぶと、控えの Math.random の値を食ってしまう）
+    // （呼ぶと、乱数の記録を返す Math.random の値を食ってしまう）
     const fillFallback = (array: TypedArray) => {
       for (let i = 0; i < array.length; i++) {
         array[i] = parseInt(String(fallbackRandom() * 4294967296));

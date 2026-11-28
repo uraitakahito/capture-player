@@ -41,7 +41,7 @@ test("記録が無い・形が違うときは null（推し量らない）", (t)
 
 const ENV = { width: 1280, height: 800, dprs: [1, 2] };
 
-test("文書の DPR: レコードの pixelRatio → 乱数の控えの dpr → 最初の値", (t) => {
+test("文書の DPR: レコードの pixelRatio → 乱数の記録の dpr → 最初の値", (t) => {
   t.is(chooseDocumentDpr(ENV, 3, 2), 3);
   t.is(chooseDocumentDpr(ENV, "1.5", 2), 1.5);
   t.is(chooseDocumentDpr(ENV, undefined, 2), 2);
@@ -50,7 +50,7 @@ test("文書の DPR: レコードの pixelRatio → 乱数の控えの dpr → �
   t.is(chooseDocumentDpr(ENV, 0, undefined), 1);
 });
 
-test("乱数の控えの選んだ文書の行から dpr を拾う", (t) => {
+test("乱数の記録の選んだ文書の行から dpr を拾う", (t) => {
   const lines = [
     { profile: "browserhive:random/1", kind: "document", document: 0, url: "https://a.test/", dpr: 1, date: "2026-11-14T00:00:00Z" },
     { profile: "browserhive:random/1", kind: "document", document: 1, url: "https://a.test/", dpr: 2, date: "2026-11-14T00:00:10Z" },
