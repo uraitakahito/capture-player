@@ -1,7 +1,7 @@
 # capture-player
 
 The Web Capture viewer for BrowserHive WACZ files: WACZ files that conform to the
-[BrowserHive WACZ Profile](https://uraitakahito.github.io/browserhive-specs/wacz-profile/1.27.0/).
+[BrowserHive WACZ Profile](https://uraitakahito.github.io/browserhive-specs/wacz-profile/1.28.0/).
 It is a **modified version** of
 [ReplayWeb.page](https://github.com/webrecorder/replayweb.page) 2.5.0 and
 [wabac.js](https://github.com/webrecorder/wabac.js) 2.27.1 by Webrecorder, served
