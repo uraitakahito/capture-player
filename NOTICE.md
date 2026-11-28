@@ -15,7 +15,8 @@ extent permitted by law.
 ## Modifications
 
 Every file under `upstream/` that capture-player changed is listed here, with the
-date it was last changed. Files that can hold a comment carry one starting with
+date it was last changed. Any change moves the date, a change to the wording of a
+comment included (`check:upstream` does not look at the dates). Files that can hold a comment carry one starting with
 `capture-player:` where they were changed. `pnpm run check:upstream` fails when a changed file is missing from this list.
 
 | Date       | File                                                                 | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
