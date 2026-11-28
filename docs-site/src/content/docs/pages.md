@@ -118,8 +118,9 @@ because a snapshot is not a response from the original URL.
   content that appears only after scrolling. Add ② when the first view matters.
 - **What the server sent** is recorded by the responses. They are kept as
   received, except where the archive did not keep a body (Archive Info shows how
-  many) or replaced a secret (`browserhive:capture` in `datapackage.json` says
-  so). ① shows them by running the page again in
+  many) or replaced a secret value (`settings.secrets` in `browserhive:capture` names
+  the capture's secrets, and each response whose values were replaced is marked
+  in the WARC). ① shows them by running the page again in
   your browser, so the picture ① draws is made now, by today's run of the page's
   JavaScript. Date and random values are replayed, not live, and are not always
   the values the page saw during the capture (see
@@ -128,7 +129,9 @@ because a snapshot is not a response from the original URL.
 - The capture itself can change what it keeps. It replaces secret values, may
   remove a consent banner before it copies the page (the dismissal), and capture
   scripts may add elements. `browserhive:capture` in `datapackage.json` records
-  this, and capture-player shows added elements in the bar above the page.
+  the dismissal and the secrets; an element a capture script added carries
+  `data-capture-script` in the snapshot, and capture-player counts them in the
+  bar above the page.
 - A screenshot covers only the top of the page. The whole page is in the
   snapshot. Some captures have no screenshots at all (for example when they were
   not asked for, or when the capture had secrets); `screenshots` in
