@@ -18,6 +18,7 @@ Web Capture は、どのアーカイブにも 2 つのビューアへのリン�
 
 ## 次に読む頁
 
+- [1 回の取り込みの頁](pages/) — 1 回の取り込みが頁の一覧に 2 つか 3 つ並ぶ訳と、どれを見ればよいか。
 - [上流から変えたこと](what-it-changes/) — capture-player が上流と違う所の全部。
 - [動かす](running/) — server の環境変数・port・配る物。
 - [開発](development/) — repo の置き場、ビューアの build、検査。

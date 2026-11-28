@@ -30,6 +30,7 @@ difference.
 
 ## Where to go next
 
+- [The pages of one capture](pages/) — why one capture shows up as two or three pages in the page list, and which one to look at.
 - [What it changes](what-it-changes/) — every way capture-player differs from upstream.
 - [Running](running/) — the server: environment variables, ports, and what it serves.
 - [Development](development/) — the layout of the repository, building the viewer, and the checks.
